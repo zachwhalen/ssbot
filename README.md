@@ -9,7 +9,7 @@ The `.gs` files in this repository are the underlying GAS code for the dev versi
 
 <a href="">Stable (v0.5)</a>
 
-<a href="https://docs.google.com/spreadsheets/d/1Cbg_6pYN04XtDHpDLtxAP3ExQEBL8PYBXBQ1E5_Sq30/edit?usp=sharing">Legacy (v0.4)</a>. 
+<a href="https://docs.google.com/spreadsheets/d/1Cbg_6pYN04XtDHpDLtxAP3ExQEBL8PYBXBQ1E5_Sq30/edit?usp=sharing">Legacy (v0.4)</a>
 
 ## Setup
 A step-by-step guide for this version is available <a href="http://www.zachwhalen.net/posts/how-to-make-a-twitter-bot-with-google-spreadsheets-version-04/
