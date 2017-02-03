@@ -3,7 +3,7 @@
 A tool for making a twitter bot using Google Spreadsheets. Because the software runs in Google Spreadsheets, and it requires the interaction of a specifically-constructed sheet with the underlying code specific to that sheet, this GitHub repo exists 
  * to point to the current, legacy, and in-development versions of the spreadsheet
  * to share the underlying code in a canonical way
- * to use <a href="/issues">the issues tracker</a> for support and bug reports
+ * to use <a href="http://github.com/zachwhalen/ssbot/issues">the issues tracker</a> for support and bug reports
 
 The `.gs` files in this repository are the underlying GAS code for the dev version.
 
