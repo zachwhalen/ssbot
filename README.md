@@ -10,6 +10,8 @@ The `.gs` files in this repository are the underlying GAS code for the dev versi
 
 ## Spreadsheets
 
+To use one of these spreadsheets, "File -> Make a Copy..." to save it to your Google Drive.
+
 <a href="https://docs.google.com/spreadsheets/d/1LeNW2BFuhB3MyeOuI51HakB6EC3ILXFjxSUtSrAsLaw/edit?usp=sharing">Current (v0.5.1)</a>
 
 <a href="https://docs.google.com/spreadsheets/d/1Cbg_6pYN04XtDHpDLtxAP3ExQEBL8PYBXBQ1E5_Sq30/edit?usp=sharing">Legacy (v0.4)</a>
