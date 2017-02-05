@@ -31,4 +31,4 @@ I like to do this first because it gives your bot a sense of identity while you 
 
 You can customize your bot’s profile now or later, but I always like to give my bots an avatar picture, a nice background, and an informative bio that explains the bot purpose while disclosing its botness. 
 
-
+<img src="images/signup.png" title="Signup Page Screenshot" alt="Signup Page Screenshot" align="center" width="964" height="1128"/>
