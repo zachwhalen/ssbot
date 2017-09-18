@@ -33,4 +33,12 @@ You can customize your bot’s profile now or later, but I always like to give m
 
 <a href="images/signup.png"><img src="images/signup.png" title="Signup Page Screenshot" alt="Signup Page Screenshot" align="center" width="300" height="351"/></a>
 
+### Step 2: Create your Twitter App
 
+### Step 3: Authorize your spreadsheet with your API credentials
+
+### Step 4: Choose and Configure a Constructor
+
+### Step 5: Review some General Settings
+
+### Step 6: Start Posting
