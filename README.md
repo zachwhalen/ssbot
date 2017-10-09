@@ -8,17 +8,24 @@ A tool for making a twitter bot using Google Spreadsheets. Because the software 
 
 The `.gs` files in this repository are the underlying GAS code for the dev version.
 
-## Spreadsheets
+## Spreadsheet Releases
 
-To use one of these spreadsheets, "File -> Make a Copy..." to save it to your Google Drive.
+To use one of these spreadsheets, use "File -> Make a Copy..." to save it to your Google Drive.
 
-<a href="https://docs.google.com/spreadsheets/d/1LeNW2BFuhB3MyeOuI51HakB6EC3ILXFjxSUtSrAsLaw/edit?usp=sharing">Current (v0.5.1)</a>
+### Current
+<a href="https://docs.google.com/spreadsheets/d/1qfHjpevccgUXLwIgxlNKBejvcWeyqTP5Fj6vfBuBwuI/edit?usp=sharing">SSBot v0.5.2</a>
 
-<a href="https://docs.google.com/spreadsheets/d/1Cbg_6pYN04XtDHpDLtxAP3ExQEBL8PYBXBQ1E5_Sq30/edit?usp=sharing">Legacy (v0.4)</a>
+### Legacy
+
+<a href="https://docs.google.com/spreadsheets/d/1LeNW2BFuhB3MyeOuI51HakB6EC3ILXFjxSUtSrAsLaw/edit?usp=sharing">SSBot v0.5.1</a>
+
+<a href="https://docs.google.com/spreadsheets/d/1Cbg_6pYN04XtDHpDLtxAP3ExQEBL8PYBXBQ1E5_Sq30/edit?usp=sharing">SSBot v0.4</a>
 
 ## Setup
 A step-by-step guide for the legacy version is available <a href="http://www.zachwhalen.net/posts/how-to-make-a-twitter-bot-with-google-spreadsheets-version-04/
 ">on my website</a>.
+
+The basic setup steps for 0.5.x are included in the spreadsheet linked above, with a slightly more verbose version to follow below.
 
 ### Step 1: Create your Bot’s Twitter Account
 
