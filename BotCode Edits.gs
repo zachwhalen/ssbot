@@ -64,7 +64,6 @@ function updateSettings() {
     .setProperty("max", ss[3].toString())
     .setProperty("img", ss[6].toString())
     .setProperty("depth", ss[7].toString())
-    .setProperty("ban", ss[8].toString())
     .setProperty("removeHashes", ss[9].toString())
     .setProperty("removeMentions", ss[10].toString())
     .setProperty("everyFail", ss[11].toString());
@@ -553,22 +552,6 @@ function msgPopUp(msg) {
 
 function onEdit(e) {
   updateSettings();
-}
-
-/*
-
- There are some words that your bot should not say. This function checks to make sure that it's not saying those words.
- Based on Darius Kazemi's wordfilter: https://www.npmjs.com/package/wordfilter
-
-*/
-
-function wordFilter(text) {
-  var properties = PropertiesService.getScriptProperties().getProperties();
-
-  if (properties.ban.length > 1) {
-    var more = properties.ban.split(",");
-  }
-  return false;
 }
 
 function doLog(msg, tweet, status) {
