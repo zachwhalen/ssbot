@@ -568,24 +568,6 @@ function wordFilter(text) {
   if (properties.ban.length > 1) {
     var more = properties.ban.split(",");
   }
-
-  var banned = new Array();
-
-  if (properties.ban.length > 1) {
-    var banned = badList.concat(properties.ban.split(","));
-  } else {
-    var banned = badList;
-  }
-
-  //Logger.log(banned);
-
-  for (var w = 0; w <= banned.length; w++) {
-    var filter = new RegExp(banned[w]);
-
-    if (filter.test(text)) {
-      return true;
-    }
-  }
   return false;
 }
 
