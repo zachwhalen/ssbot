@@ -124,23 +124,11 @@ function preview() {
   SpreadsheetApp.getActiveSpreadsheet().setActiveSheet(previewSheet);
 
   switch (properties.constructor) {
-    case "markov":
-      var textFunction = getMarkovText;
+    case "sequential":
+      var textFunction = getSequentialText;
       break;
-    case "rows":
-      var textFunction = getRowSelectText;
-      break;
-    case "columns":
-      var textFunction = getColumnSelectText;
-      break;
-    case "_ebooks":
-      var textFunction = getEbooksText;
-      break;
-    case "every":
-      var textFunction = getEveryText;
-      break;
-    case "x + y":
-      var textFunction = getXYText;
+    case "random":
+      var textFunction = getRandomText;
       break;
     default:
       Logger.log(
