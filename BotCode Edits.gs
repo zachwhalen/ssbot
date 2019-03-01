@@ -2,7 +2,7 @@
 
    A Spreadsheet-powered Twitter Bot Engine, version 0.5.1, September 2016
 
-   by Zach Whalen (@zachwhalen, zachwhalen.net)
+   Originally by Zach Whalen (@zachwhalen, zachwhalen.net) and edited by Tim Biden (@TimBiden, timbiden.com)
 
    This code powers the backend for a front-end in a google spreadsheet. If somehow
    you've arrived at this code without the spreadsheet, start by making a copy of that
@@ -346,6 +346,9 @@ function authorizationRevoke() {
  * This is the function that finds a single tweet and passes it on to be sent out.
  * I suppose this could be combined with the preview-generation function but hey I have other stuff to do.
  */
+
+var tweet = "";
+var tweetArray = [];
 
 function generateSingleTweet() {
   var properties = PropertiesService.getScriptProperties().getProperties();
