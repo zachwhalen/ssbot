@@ -350,27 +350,15 @@ function authorizationRevoke() {
 var tweet = "";
 var tweetArray = [];
 
-function generateSingleTweet() {
+function generateTweets() {
   var properties = PropertiesService.getScriptProperties().getProperties();
 
   switch (properties.constructor) {
-    case "markov":
-      var textFunction = getMarkovText;
+    case "sequential":
+      var textFunction = getSequentialText;
       break;
-    case "rows":
-      var textFunction = getRowSelectText;
-      break;
-    case "columns":
-      var textFunction = getColumnSelectText;
-      break;
-    case "_ebooks":
-      var textFunction = getEbooksText;
-      break;
-    case "every":
-      var textFunction = getEveryText;
-      break;
-    case "x + y":
-      var textFunction = getXYText;
+    case "random":
+      var textFunction = getRandomText;
       break;
     default:
       Logger.log(
@@ -378,7 +366,15 @@ function generateSingleTweet() {
       );
   }
 
-  var tweet = textFunction();
+  tweetArray = textFunction();
+}
+
+function sendSingleTweet() {
+  if (tweetArray.length < 1) {
+    tweetArray = generateTweets();
+  }
+
+  tweet = tweetArray.slice(0, 1);
 
   if (
     typeof tweet != "undefined" &&
