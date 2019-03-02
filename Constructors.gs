@@ -30,21 +30,17 @@ function getSequentialText(count) {
 
 function getSequentialText(count) {
   var rows = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName("sequential")
+    .getSheetByName("random")
     .getDataRange();
   var values = rows.getValues();
   var numRows = rows.getNumRows();
 
-  values.splice(0, 4);
-
   var list = new Array();
 
-  for (var r = 0; r < numRows; r++) {
+  for (var r = 4; r < numRows; r++) {
     var RandNum = Math.floor(Math.random() * values.length);
-    var NewTweet = values[RandNum];
+    list.push(values[RandNum]);
     values.splice(RandNum, 1);
-
-    list.push();
   }
 
   return list;

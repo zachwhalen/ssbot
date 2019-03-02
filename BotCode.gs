@@ -64,36 +64,6 @@ function everyRotate() {
   everySheet.getRange("a" + nextRow).setValue("next-->");
 }
 
-function preview() {
-  var properties = PropertiesService.getScriptProperties().getProperties();
-
-  // set up and clear preview sheet
-  var previewSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(
-    "Preview"
-  );
-  previewSheet.getRange("b4:b20").setValue(" ");
-  SpreadsheetApp.getActiveSpreadsheet().setActiveSheet(previewSheet);
-
-  switch (properties.constructor) {
-    case "sequential":
-      var textFunction = getSequentialText;
-      break;
-    // case "random":
-    //   var textFunction = getRandomText;
-    //   break;
-    default:
-      Logger.log(
-        "I don't know what happened, but I can't figure out what sort of text to generate."
-      );
-  }
-
-  for (var p = 0; p < 16; p++) {
-    var offset = p + 5;
-    var prv = textFunction(10); // change this value if you want more or less preview output
-    previewSheet.getRange("b" + offset).setValue(prv);
-  }
-}
-
 function setTiming() {
   var properties = PropertiesService.getScriptProperties().getProperties();
 
@@ -204,7 +174,6 @@ function onOpen() {
     .addItem("Authorize with Twitter", "sendSingleTweet")
     .addItem("Revoke Twitter Authorization", "authorizationRevoke")
     .addSeparator()
-    .addItem("Generate Preview", "preview")
     .addItem("Send a Test Tweet", "sendSingleTweet")
     .addSeparator()
     .addItem("Start Scheduled Posts", "setTiming")
@@ -303,6 +272,8 @@ function generateTweets() {
   }
 
   tweetArray = textFunction();
+
+  console.log("LINE 276!!!!!!!!!!!!!!!!!!! " + tweetArray);
 
   SpreadsheetApp.getActiveSpreadsheet()
     .getSheetByName("IgnoreMe")
