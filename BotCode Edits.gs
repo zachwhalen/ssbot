@@ -304,8 +304,6 @@ function generateTweets() {
 
   tweetArray = textFunction();
 
-  console.log("LINE 307 " + tweetArray);
-
   SpreadsheetApp.getActiveSpreadsheet()
     .getSheetByName("IgnoreMe")
     .getRange(1, 1, tweetArray.length, 1)
@@ -316,18 +314,28 @@ function generateTweets() {
 
 function sendSingleTweet() {
   if (curfew()) {
+    console.log("CURFEW IN EFFECT!!!");
     return;
   }
 
   var properties = PropertiesService.getScriptProperties().getProperties();
-  if (typeof tweetArray === "undefined" || tweetArray.length <= 1) {
-    console.log(tweetArray);
-    tweetArray = generateTweets();
-  } else {
-    console.log("THERE'S THERE THERE!!!");
-  }
 
-  // tweet = tweetArray.slice(0, 1);
+  tweet = SpreadsheetApp.getActiveSpreadsheet()
+    .getSheetByName("IgnoreMe")
+    .getRange("a1")
+    .getValue();
+
+  SpreadsheetApp.getActiveSpreadsheet()
+    .getSheetByName("IgnoreMe")
+    .deleteRow(1);
+
+  console.log("*******************************");
+  console.log(tweet);
+
+  // if (typeof tweetArray === "undefined" || tweetArray.length <= 1) {
+  //   tweetArray = generateTweets();
+  // }
+
   tweet = tweet.toString();
 
   if (tweet.charAt(0) === ",") {

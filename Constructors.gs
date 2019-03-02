@@ -21,7 +21,5 @@ function getSequentialText(count) {
     list.push(values[r]);
   }
 
-  console.log("*****************************");
-  console.log(list);
   return list;
 }
