@@ -1,3 +1,29 @@
+/\*
+
+A Spreadsheet-powered Twitter Bot Engine, version 0.5.1, September 2016
+
+Originally by Zach Whalen (@zachwhalen, zachwhalen.net) and edited by Tim Biden (@TimBiden, timbiden.com)
+
+This code powers the backend for a front-end in a google spreadsheet. If somehow
+you've arrived at this code without the spreadsheet, start by making a copy of that
+sheet by visiting this URL:
+
+     bit.ly/...
+
+All of the setup instructions are available in the sheet or (with pictures!) in
+this blog post:
+
+http://zachwhalen.net/posts/how-to-make-a-twitter-bot-with-google-spreadsheets-version-04
+
+Use it at your own discretion bearing in mind Twitter's terms of service and Darius
+Kazemi's "Basic Twitter bot Etiquette":
+http://tinysubversions.com/2013/03/basic-twitter-bot-etiquette/
+
+This script makes use of Twitter Lib by Bradley Momberger and implements some concepts
+inspired by or borrowed from Darius Kazemi and Martin Hawksey.
+
+\*/
+
 # BizTwitterBot
 
 A tool for making a twitter bot using Google Spreadsheets. Because the software runs in Google Spreadsheets, and it requires the interaction of a specifically-constructed sheet with the underlying code specific to that sheet, this GitHub repo exists

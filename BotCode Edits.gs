@@ -1,54 +1,5 @@
-/*
-
-   A Spreadsheet-powered Twitter Bot Engine, version 0.5.1, September 2016
-
-   Originally by Zach Whalen (@zachwhalen, zachwhalen.net) and edited by Tim Biden (@TimBiden, timbiden.com)
-
-   This code powers the backend for a front-end in a google spreadsheet. If somehow
-   you've arrived at this code without the spreadsheet, start by making a copy of that
-   sheet by visiting this URL:
-
-     bit.ly/...
-
-   All of the setup instructions are available in the sheet or (with pictures!) in
-   this blog post:
-
-   http://zachwhalen.net/posts/how-to-make-a-twitter-bot-with-google-spreadsheets-version-04
-
-   Use it at your own discretion bearing in mind Twitter's terms of service and Darius
-   Kazemi's "Basic Twitter bot Etiquette":
-   http://tinysubversions.com/2013/03/basic-twitter-bot-etiquette/
-
-   This script makes use of Twitter Lib by Bradley Momberger and implements some concepts
-   inspired by or borrowed from Darius Kazemi and Martin Hawksey.
-
-*/
-
-/*
-
-    MIT License
-
-    Copyright (c) 2016 Zach Whalen
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-
-*/
+var tweet = "";
+var tweetArray = [];
 
 function updateSettings() {
   var ss = SpreadsheetApp.getActiveSpreadsheet()
@@ -335,9 +286,6 @@ function authorizationRevoke() {
  * I suppose this could be combined with the preview-generation function but hey I have other stuff to do.
  */
 
-var tweet = "";
-var tweetArray = [];
-
 function generateTweets() {
   var properties = PropertiesService.getScriptProperties().getProperties();
 
@@ -359,6 +307,10 @@ function generateTweets() {
 }
 
 function sendSingleTweet() {
+  if (curfew()) {
+    return;
+  }
+
   var properties = PropertiesService.getScriptProperties().getProperties();
   if (typeof tweetArray === "undefined" || tweetArray.length <= 1) {
     console.log(tweetArray);
@@ -377,11 +329,7 @@ function sendSingleTweet() {
     console.log("NOT REMOVING");
   }
 
-  if (
-    typeof tweet != "undefined" &&
-    tweet.length > properties.min &&
-    !curfew()
-  ) {
+  if (typeof tweet != "undefined" && tweet.length > properties.min) {
     if (properties.removeMentions == "yes") {
       tweet = tweet.replace(/@[a-zA-Z0-9_]+/g, "");
     }
@@ -393,7 +341,7 @@ function sendSingleTweet() {
     }
     doTweet(tweet);
   } else {
-    Logger.log("Too short, or some other problem.");
+    Logger.log("Too $hort, or some other problem.");
     Logger.log(tweet);
   }
 }
@@ -473,9 +421,8 @@ function getMediaIds(tweet) {
 }
 
 /*
- * Do the actual sending of a single tweet.
- *
- */
+  Do the actual sending of a single tweet.
+*/
 
 function doTweet(tweet) {
   var properties = PropertiesService.getScriptProperties().getProperties();
