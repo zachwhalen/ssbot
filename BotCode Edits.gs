@@ -312,14 +312,7 @@ function generateTweets() {
   return tweetArray;
 }
 
-function sendSingleTweet() {
-  if (curfew()) {
-    console.log("CURFEW IN EFFECT!!!");
-    return;
-  }
-
-  var properties = PropertiesService.getScriptProperties().getProperties();
-
+function getNextTweet() {
   tweet = SpreadsheetApp.getActiveSpreadsheet()
     .getSheetByName("IgnoreMe")
     .getRange("a1")
@@ -329,21 +322,27 @@ function sendSingleTweet() {
     .getSheetByName("IgnoreMe")
     .deleteRow(1);
 
-  console.log("*******************************");
-  console.log(tweet);
-
-  // if (typeof tweetArray === "undefined" || tweetArray.length <= 1) {
-  //   tweetArray = generateTweets();
-  // }
-
   tweet = tweet.toString();
 
-  if (tweet.charAt(0) === ",") {
-    console.log("REMOVING");
-    tweet = tweet.substr(1);
-  } else {
-    console.log("NOT REMOVING");
+  return tweet;
+}
+
+function sendSingleTweet() {
+  if (curfew()) {
+    console.log("CURFEW IN EFFECT!!!");
+    return;
   }
+
+  var properties = PropertiesService.getScriptProperties().getProperties();
+
+  tweet = getNextTweet();
+
+  if (tweet.length < properties.min) {
+    tweetArray = generateTweets();
+    tweet = getNextTweet();
+  }
+
+  console.log("LINE 345 " + tweet);
 
   if (typeof tweet != "undefined" && tweet.length > properties.min) {
     if (properties.removeMentions == "yes") {
