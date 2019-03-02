@@ -273,8 +273,6 @@ function generateTweets() {
 
   tweetArray = textFunction();
 
-  console.log("LINE 276!!!!!!!!!!!!!!!!!!! " + tweetArray);
-
   SpreadsheetApp.getActiveSpreadsheet()
     .getSheetByName("Data")
     .getRange(1, 1, tweetArray.length, 1)
@@ -313,8 +311,6 @@ function sendSingleTweet() {
     tweet = getNextTweet();
   }
 
-  console.log("LINE 345 " + tweet);
-
   if (typeof tweet != "undefined" && tweet.length > properties.min) {
     if (properties.removeMentions == "yes") {
       tweet = tweet.replace(/@[a-zA-Z0-9_]+/g, "");
@@ -339,8 +335,6 @@ function curfew() {
 
   var time = new Date();
   var hour = time.getHours();
-
-  console.log("HOURS =============" + hour);
 
   var quietBegin = properties.quietStart;
   var quietEnd = properties.quietEnd;
