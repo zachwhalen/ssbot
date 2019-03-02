@@ -303,6 +303,14 @@ function generateTweets() {
   }
 
   tweetArray = textFunction();
+
+  console.log("LINE 307 " + tweetArray);
+
+  SpreadsheetApp.getActiveSpreadsheet()
+    .getSheetByName("IgnoreMe")
+    .getRange(1, 1, tweetArray.length, 1)
+    .setValues(tweetArray);
+
   return tweetArray;
 }
 
@@ -319,7 +327,7 @@ function sendSingleTweet() {
     console.log("THERE'S THERE THERE!!!");
   }
 
-  tweet = tweetArray.slice(0, 1);
+  // tweet = tweetArray.slice(0, 1);
   tweet = tweet.toString();
 
   if (tweet.charAt(0) === ",") {

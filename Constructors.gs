@@ -20,5 +20,8 @@ function getSequentialText(count) {
   for (var r = 4; r < numRows; r++) {
     list.push(values[r]);
   }
+
+  console.log("*****************************");
+  console.log(list);
   return list;
 }
