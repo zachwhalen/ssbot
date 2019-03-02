@@ -9,8 +9,6 @@ function test() {
 */
 
 function getSequentialText(count) {
-  var p = PropertiesService.getScriptProperties().getProperties();
-
   var rows = SpreadsheetApp.getActiveSpreadsheet()
     .getSheetByName("sequential")
     .getDataRange();
@@ -21,7 +19,6 @@ function getSequentialText(count) {
 
   for (var r = 4; r < numRows; r++) {
     list.push(values[r]);
-    // console.log("CONSTRUCTORS LINE 454" + values[r]);
   }
   return list;
 }
