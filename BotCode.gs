@@ -1,54 +1,5 @@
-/* 
-
-   A Spreadsheet-powered Twitter Bot Engine, version 0.5.1, September 2016
-   
-   by Zach Whalen (@zachwhalen, zachwhalen.net)
-   
-   This code powers the backend for a front-end in a google spreadsheet. If somehow 
-   you've arrived at this code without the spreadsheet, start by making a copy of that 
-   sheet by visiting this URL:
-   
-     bit.ly/...
-   
-   All of the setup instructions are available in the sheet or (with pictures!) in 
-   this blog post:
-   
-   http://zachwhalen.net/posts/how-to-make-a-twitter-bot-with-google-spreadsheets-version-04
-   
-   Use it at your own discretion bearing in mind Twitter's terms of service and Darius 
-   Kazemi's "Basic Twitter bot Etiquette": 
-   http://tinysubversions.com/2013/03/basic-twitter-bot-etiquette/
-   
-   This script makes use of Twitter Lib by Bradley Momberger and implements some concepts 
-   inspired by or borrowed from Darius Kazemi and Martin Hawksey.
-
-*/
-
-/*  
-
-    MIT License
-    
-    Copyright (c) 2016 Zach Whalen
-    
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-    
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-    
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-   
-*/
+var tweet = "";
+var tweetArray = [];
 
 function updateSettings() {
   var ss = SpreadsheetApp.getActiveSpreadsheet()
@@ -64,7 +15,6 @@ function updateSettings() {
     .setProperty("max", ss[3].toString())
     .setProperty("img", ss[6].toString())
     .setProperty("depth", ss[7].toString())
-    .setProperty("ban", ss[8].toString())
     .setProperty("removeHashes", ss[9].toString())
     .setProperty("removeMentions", ss[10].toString())
     .setProperty("everyFail", ss[11].toString());
@@ -125,24 +75,12 @@ function preview() {
   SpreadsheetApp.getActiveSpreadsheet().setActiveSheet(previewSheet);
 
   switch (properties.constructor) {
-    case "markov":
-      var textFunction = getMarkovText;
+    case "sequential":
+      var textFunction = getSequentialText;
       break;
-    case "rows":
-      var textFunction = getRowSelectText;
-      break;
-    case "columns":
-      var textFunction = getColumnSelectText;
-      break;
-    case "_ebooks":
-      var textFunction = getEbooksText;
-      break;
-    case "every":
-      var textFunction = getEveryText;
-      break;
-    case "x + y":
-      var textFunction = getXYText;
-      break;
+    // case "random":
+    //   var textFunction = getRandomText;
+    //   break;
     default:
       Logger.log(
         "I don't know what happened, but I can't figure out what sort of text to generate."
@@ -164,67 +102,67 @@ function setTiming() {
 
   switch (properties.timing) {
     case "12 hours":
-      var trigger = ScriptApp.newTrigger("generateSingleTweet")
+      var trigger = ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyHours(12)
         .create();
       break;
     case "8 hours":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyHours(8)
         .create();
       break;
     case "6 hours":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyHours(6)
         .create();
       break;
     case "4 hours":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyHours(4)
         .create();
       break;
     case "2 hours":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyHours(2)
         .create();
       break;
     case "1 hour":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyHours(1)
         .create();
       break;
     case "30 minutes":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyMinutes(30)
         .create();
       break;
     case "20 minutes":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyMinutes(20)
         .create();
       break;
     case "15 minutes":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyMinutes(15)
         .create();
       break;
     case "10 minutes":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyMinutes(10)
         .create();
       break;
     case "5 minutes":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyMinutes(5)
         .create();
@@ -247,7 +185,7 @@ function clearTiming() {
 /*
 
   ADD THE "BOT" MENU
- 
+
 */
 
 function onOpen() {
@@ -255,7 +193,7 @@ function onOpen() {
   //  ui.createMenu('Bot')
   //      .addItem('Generate Preview', 'preview')
   //      .addSeparator()
-  //      .addItem('Send a Test Tweet', 'generateSingleTweet')
+  //      .addItem('Send a Test Tweet', 'sendSingleTweet')
   //      .addItem('Revoke Twitter Authorization', 'authorizationRevoke')
   //      .addSeparator()
   //      .addItem('Start Posting Tweets', 'setTiming')
@@ -263,11 +201,11 @@ function onOpen() {
   //      .addToUi();
 
   ui.createMenu("Bot")
-    .addItem("Authorize with Twitter", "generateSingleTweet")
+    .addItem("Authorize with Twitter", "sendSingleTweet")
     .addItem("Revoke Twitter Authorization", "authorizationRevoke")
     .addSeparator()
     .addItem("Generate Preview", "preview")
-    .addItem("Send a Test Tweet", "generateSingleTweet")
+    .addItem("Send a Test Tweet", "sendSingleTweet")
     .addSeparator()
     .addItem("Start Scheduled Posts", "setTiming")
     .addItem("Stop Scheduled Posts", "clearTiming")
@@ -348,27 +286,15 @@ function authorizationRevoke() {
  * I suppose this could be combined with the preview-generation function but hey I have other stuff to do.
  */
 
-function generateSingleTweet() {
+function generateTweets() {
   var properties = PropertiesService.getScriptProperties().getProperties();
 
   switch (properties.constructor) {
-    case "markov":
-      var textFunction = getMarkovText;
+    case "sequential":
+      var textFunction = getSequentialText;
       break;
-    case "rows":
-      var textFunction = getRowSelectText;
-      break;
-    case "columns":
-      var textFunction = getColumnSelectText;
-      break;
-    case "_ebooks":
-      var textFunction = getEbooksText;
-      break;
-    case "every":
-      var textFunction = getEveryText;
-      break;
-    case "x + y":
-      var textFunction = getXYText;
+    case "random":
+      var textFunction = getRandomText;
       break;
     default:
       Logger.log(
@@ -376,14 +302,49 @@ function generateSingleTweet() {
       );
   }
 
-  var tweet = textFunction();
+  tweetArray = textFunction();
 
-  if (
-    typeof tweet != "undefined" &&
-    tweet.length > properties.min &&
-    !wordFilter(tweet) &&
-    !curfew()
-  ) {
+  SpreadsheetApp.getActiveSpreadsheet()
+    .getSheetByName("IgnoreMe")
+    .getRange(1, 1, tweetArray.length, 1)
+    .setValues(tweetArray);
+
+  return tweetArray;
+}
+
+function getNextTweet() {
+  tweet = SpreadsheetApp.getActiveSpreadsheet()
+    .getSheetByName("IgnoreMe")
+    .getRange("a1")
+    .getValue();
+
+  SpreadsheetApp.getActiveSpreadsheet()
+    .getSheetByName("IgnoreMe")
+    .deleteRow(1);
+
+  tweet = tweet.toString();
+
+  return tweet;
+}
+
+function sendSingleTweet() {
+  if (curfew()) {
+    console.log("CURFEW IN EFFECT!!!");
+    return;
+  }
+
+  var properties = PropertiesService.getScriptProperties().getProperties();
+
+  tweet = getNextTweet();
+
+  if (tweet.length < properties.min) {
+    tweetArray = generateTweets();
+    tweet = getNextTweet();
+  }
+
+  console.log("LINE 345 " + tweet);
+
+  if (typeof tweet != "undefined" && tweet.length > properties.min) {
     if (properties.removeMentions == "yes") {
       tweet = tweet.replace(/@[a-zA-Z0-9_]+/g, "");
     }
@@ -395,9 +356,8 @@ function generateSingleTweet() {
     }
     doTweet(tweet);
   } else {
-    Logger.log("Too short, or some other problem.");
+    Logger.log("Too $hort, or some other problem.");
     Logger.log(tweet);
-    Logger.log("Wordfilter: " + wordFilter(tweet));
   }
 }
 
@@ -409,6 +369,8 @@ function curfew() {
   var time = new Date();
   var hour = time.getHours();
 
+  console.log("HOURS =============" + hour);
+
   var quietBegin = properties.quietStart;
   var quietEnd = properties.quietEnd;
 
@@ -419,11 +381,15 @@ function curfew() {
   if (quietEnd > quietBegin) {
     if ((hour >= quietBegin) & (hour < quietEnd)) {
       Logger.log("Quiet hours");
+
+      console.log("NO TWEETING. GO TO BED. LINE 383");
       return true;
     }
   } else {
     if ((hour >= quietBegin) | (hour < quietEnd)) {
       Logger.log("Quiet hours");
+
+      console.log("NO TWEETING. GO TO BED. LINE 389");
       return true;
     }
   }
@@ -476,9 +442,8 @@ function getMediaIds(tweet) {
 }
 
 /*
- * Do the actual sending of a single tweet.
- *
- */
+  Do the actual sending of a single tweet.
+*/
 
 function doTweet(tweet) {
   var properties = PropertiesService.getScriptProperties().getProperties();
@@ -553,99 +518,6 @@ function msgPopUp(msg) {
 
 function onEdit(e) {
   updateSettings();
-}
-
-/*
-
- There are some words that your bot should not say. This function checks to make sure that it's not saying those words. 
- Based on Darius Kazemi's wordfilter: https://www.npmjs.com/package/wordfilter
- 
-*/
-
-function wordFilter(text) {
-  var properties = PropertiesService.getScriptProperties().getProperties();
-
-  if (properties.ban.length > 1) {
-    var more = properties.ban.split(",");
-  }
-
-  var badList = [
-    "beeyotch",
-    "biatch",
-    "bitch",
-    "chinaman",
-    "chinamen",
-    "chink",
-    "cuck",
-    "crip",
-    "cunt",
-    "dago",
-    "daygo",
-    "dego",
-    "dick",
-    "douchebag",
-    "dyke",
-    "fag",
-    "fatass",
-    "fatso",
-    "gash",
-    "gimp",
-    "golliwog",
-    "gook",
-    "gyp",
-    "halfbreed",
-    "half-breed",
-    "homo",
-    "hooker",
-    "jap",
-    "kike",
-    "kraut",
-    "lame",
-    "lardass",
-    "lesbo",
-    "negro",
-    "nigga",
-    "nigger",
-    "paki",
-    "pickaninny",
-    "pussy",
-    "raghead",
-    "retard",
-    "shemale",
-    "skank",
-    "slut",
-    "spade",
-    "spic",
-    "spook",
-    "tard",
-    "tits",
-    "titt",
-    "trannies",
-    "tranny",
-    "twat",
-    "wetback",
-    "whore",
-    "wop"
-  ];
-
-  var banned = new Array();
-
-  if (properties.ban.length > 1) {
-    var banned = badList.concat(properties.ban.split(","));
-  } else {
-    var banned = badList;
-  }
-
-  //Logger.log(banned);
-
-  for (var w = 0; w <= banned.length; w++) {
-    var filter = new RegExp(banned[w]);
-
-    if (filter.test(text)) {
-      return true;
-    }
-  }
-  return false;
 }
 
 function doLog(msg, tweet, status) {
