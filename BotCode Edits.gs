@@ -369,6 +369,8 @@ function curfew() {
   var time = new Date();
   var hour = time.getHours();
 
+  console.log("HOURS =============" + hour);
+
   var quietBegin = properties.quietStart;
   var quietEnd = properties.quietEnd;
 
@@ -379,11 +381,15 @@ function curfew() {
   if (quietEnd > quietBegin) {
     if ((hour >= quietBegin) & (hour < quietEnd)) {
       Logger.log("Quiet hours");
+
+      console.log("NO TWEETING. GO TO BED. LINE 383");
       return true;
     }
   } else {
     if ((hour >= quietBegin) | (hour < quietEnd)) {
       Logger.log("Quiet hours");
+
+      console.log("NO TWEETING. GO TO BED. LINE 389");
       return true;
     }
   }
