@@ -276,7 +276,7 @@ function generateTweets() {
   console.log("LINE 276!!!!!!!!!!!!!!!!!!! " + tweetArray);
 
   SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName("IgnoreMe")
+    .getSheetByName("Data")
     .getRange(1, 1, tweetArray.length, 1)
     .setValues(tweetArray);
 
@@ -285,12 +285,12 @@ function generateTweets() {
 
 function getNextTweet() {
   tweet = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName("IgnoreMe")
+    .getSheetByName("Data")
     .getRange("a1")
     .getValue();
 
   SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName("IgnoreMe")
+    .getSheetByName("Data")
     .deleteRow(1);
 
   tweet = tweet.toString();
