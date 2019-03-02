@@ -438,11 +438,11 @@ function getXYText() {
   PUSH PRESET TWEETS IN ORDER
 */
 
-function getColumnSelectText(count) {
+function getSequentialText(count) {
   var p = PropertiesService.getScriptProperties().getProperties();
 
   var rows = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName("columns")
+    .getSheetByName("sequential")
     .getDataRange();
   var values = rows.getValues();
   var numRows = rows.getNumRows();
@@ -451,69 +451,10 @@ function getColumnSelectText(count) {
 
   for (var r = 4; r < numRows; r++) {
     list.push(values[r]);
-    console.log(values[r]);
+    // console.log("CONSTRUCTORS LINE 454" + values[r]);
   }
+
+  console.log("CONSTRUCTORS LINE 457" + typeof list);
+  console.log("CONSTRUCTORS LINE 458" + list);
   return list;
-}
-
-/*
-
- MAKE TWEETS BY SELECTING ONE CELL FROM EACH ROW
-
-*/
-
-function getRowSelectText(count) {
-  var p = PropertiesService.getScriptProperties().getProperties();
-
-  if (typeof count !== "undefined") {
-    var quota = count;
-  } else {
-    var quota = 1;
-  }
-  // select one cell from each row
-
-  var rows = SpreadsheetApp.getActiveSpreadsheet()
-    .getSheetByName("rows")
-    .getDataRange();
-  var values = rows.getValues();
-  var numRows = rows.getNumRows();
-  var list = new Array();
-
-  for (var i = 4; i <= numRows - 1; i++) {
-    var row = values[i];
-    list[i] = new Array();
-
-    // find the actual limit of this row
-    var len = 0;
-    for (var j = 1; j <= row.length; j++) {
-      if (row[j]) {
-        list[i][j] = row[j];
-      }
-    }
-  }
-
-  for (var q = 0; q < quota; q++) {
-    var tweet = "";
-    for (var k = 4; k < list.length; k++) {
-      if (tweet.length < p.max) {
-        // Logger.log(list[k]);
-        var word =
-          list[k][Math.floor(Math.random() * (list[k].length - 1)) + 1];
-
-        // make sure word is not undefined
-        if (typeof word != "undefined") {
-          if (typeof word != "string") {
-            word = JSON.stringify(word);
-          }
-
-          var tweaked = word.replace(/\\n/g, "\n");
-          tweet = tweet + " " + tweaked;
-        }
-      }
-    }
-
-    if (tweet.length > p.min) {
-      return tweet;
-    }
-  }
 }

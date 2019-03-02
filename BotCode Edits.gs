@@ -127,9 +127,9 @@ function preview() {
     case "sequential":
       var textFunction = getSequentialText;
       break;
-    case "random":
-      var textFunction = getRandomText;
-      break;
+    // case "random":
+    //   var textFunction = getRandomText;
+    //   break;
     default:
       Logger.log(
         "I don't know what happened, but I can't figure out what sort of text to generate."
@@ -151,67 +151,67 @@ function setTiming() {
 
   switch (properties.timing) {
     case "12 hours":
-      var trigger = ScriptApp.newTrigger("generateSingleTweet")
+      var trigger = ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyHours(12)
         .create();
       break;
     case "8 hours":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyHours(8)
         .create();
       break;
     case "6 hours":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyHours(6)
         .create();
       break;
     case "4 hours":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyHours(4)
         .create();
       break;
     case "2 hours":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyHours(2)
         .create();
       break;
     case "1 hour":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyHours(1)
         .create();
       break;
     case "30 minutes":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyMinutes(30)
         .create();
       break;
     case "20 minutes":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyMinutes(20)
         .create();
       break;
     case "15 minutes":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyMinutes(15)
         .create();
       break;
     case "10 minutes":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyMinutes(10)
         .create();
       break;
     case "5 minutes":
-      ScriptApp.newTrigger("generateSingleTweet")
+      ScriptApp.newTrigger("sendSingleTweet")
         .timeBased()
         .everyMinutes(5)
         .create();
@@ -242,7 +242,7 @@ function onOpen() {
   //  ui.createMenu('Bot')
   //      .addItem('Generate Preview', 'preview')
   //      .addSeparator()
-  //      .addItem('Send a Test Tweet', 'generateSingleTweet')
+  //      .addItem('Send a Test Tweet', 'sendSingleTweet')
   //      .addItem('Revoke Twitter Authorization', 'authorizationRevoke')
   //      .addSeparator()
   //      .addItem('Start Posting Tweets', 'setTiming')
@@ -250,11 +250,11 @@ function onOpen() {
   //      .addToUi();
 
   ui.createMenu("Bot")
-    .addItem("Authorize with Twitter", "generateSingleTweet")
+    .addItem("Authorize with Twitter", "sendSingleTweet")
     .addItem("Revoke Twitter Authorization", "authorizationRevoke")
     .addSeparator()
     .addItem("Generate Preview", "preview")
-    .addItem("Send a Test Tweet", "generateSingleTweet")
+    .addItem("Send a Test Tweet", "sendSingleTweet")
     .addSeparator()
     .addItem("Start Scheduled Posts", "setTiming")
     .addItem("Stop Scheduled Posts", "clearTiming")
@@ -355,19 +355,28 @@ function generateTweets() {
   }
 
   tweetArray = textFunction();
+  return tweetArray;
 }
 
 function sendSingleTweet() {
-  if (tweetArray.length < 1) {
+  var properties = PropertiesService.getScriptProperties().getProperties();
+  if (typeof tweetArray === "undefined" || tweetArray.length <= 1) {
     tweetArray = generateTweets();
   }
 
   tweet = tweetArray.slice(0, 1);
+  tweet = tweet.toString();
+
+  if (tweet.charAt(0) === ",") {
+    console.log("REMOVING");
+    tweet = tweet.substr(1);
+  } else {
+    console.log("NOT REMOVING");
+  }
 
   if (
     typeof tweet != "undefined" &&
     tweet.length > properties.min &&
-    !wordFilter(tweet) &&
     !curfew()
   ) {
     if (properties.removeMentions == "yes") {
@@ -383,7 +392,6 @@ function sendSingleTweet() {
   } else {
     Logger.log("Too short, or some other problem.");
     Logger.log(tweet);
-    Logger.log("Wordfilter: " + wordFilter(tweet));
   }
 }
 
