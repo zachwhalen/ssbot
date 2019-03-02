@@ -361,7 +361,10 @@ function generateTweets() {
 function sendSingleTweet() {
   var properties = PropertiesService.getScriptProperties().getProperties();
   if (typeof tweetArray === "undefined" || tweetArray.length <= 1) {
+    console.log(tweetArray);
     tweetArray = generateTweets();
+  } else {
+    console.log("THERE'S THERE THERE!!!");
   }
 
   tweet = tweetArray.slice(0, 1);
