@@ -1,397 +1,145 @@
-/* A Spreadsheet-powered Twitterbot Engine, version 0.4, May 2015
+/* 
+
+   A Spreadsheet-powered Twitter Bot Engine, version 0.5.1, September 2016
    
-   by Zach Whalen (@zachwhalen, zachwhalen.net, etc.)
+   by Zach Whalen (@zachwhalen, zachwhalen.net)
    
-   This code powers the backend for a front-end in a google spreadsheet. If somehow you've arrived at this code without the spreadsheet, start by making a copy of that sheet by visiting this link:
+   This code powers the backend for a front-end in a google spreadsheet. If somehow 
+   you've arrived at this code without the spreadsheet, start by making a copy of that 
+   sheet by visiting this URL:
    
-   bit.ly/botsheet
+     bit.ly/...
    
-   All of the setup instructions are available in the sheet or (with pictures!) in this blog post:
+   All of the setup instructions are available in the sheet or (with pictures!) in 
+   this blog post:
    
    http://zachwhalen.net/posts/how-to-make-a-twitter-bot-with-google-spreadsheets-version-04
    
-   The code here is offered as-is with no guarantee that it works or that by using it you won't make Twitter mad at you. 
-   Use it at your own discretion bearing in mind Twitter's terms of service and Darius Kazemi's "Basic Twitter bot Etiquette": http://tinysubversions.com/2013/03/basic-twitter-bot-etiquette/
+   Use it at your own discretion bearing in mind Twitter's terms of service and Darius 
+   Kazemi's "Basic Twitter bot Etiquette": 
+   http://tinysubversions.com/2013/03/basic-twitter-bot-etiquette/
    
-   This work is offered under a CC-BY license, so you may do whatever you like to modify, improve, distribute, or even profit from it. Just let me know.
-
-   This script makes use of [that Twitter library] and implements some concepts inspired by or borrowed from Darius Kazemi and Martin Hawksey.
-   
-   TODO: The Twitter auth popup.
-   TODO: the options to strip tags and @'s
+   This script makes use of Twitter Lib by Bradley Momberger and implements some concepts 
+   inspired by or borrowed from Darius Kazemi and Martin Hawksey.
 
 */
 
+/*  
 
-
-/*   THE NEXT FEW FUNCTIONS ARE FOR MAKING OUTPUT   */
-
-
-/* 
-  Use settings in the "_ebooks" sheet to generate *_ebooks-like output. 
-  Implements a basic Markov chaining algorithm for nonsense
+    MIT License
+    
+    Copyright (c) 2016 Zach Whalen
+    
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+    
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+    
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+   
 */
 
-function getEbooksText (count) {
+function updateSettings () {
+  var ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings").getRange("b4:b14").getValues();
+  var scriptProperties = PropertiesService.getScriptProperties();
   
-  if (typeof count !== 'undefined'){
-   var quota = count; 
-  }else{
-   var quota = 1; 
-  }
+  scriptProperties.
+    setProperty('constructor', ss[0].toString()).
+    setProperty('timing', ss[1].toString()).
+    setProperty('min',ss[2].toString()).
+    setProperty('max',ss[3].toString()).
+    setProperty('img',ss[6].toString()).
+    setProperty('depth',ss[7].toString()).
+    setProperty('ban',ss[8].toString()).
+    setProperty('removeHashes',ss[9].toString()).
+    setProperty('removeMentions',ss[10].toString());
+    
+    var quietStart = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings").getRange("b8").getValue().getHours();
+    var quietStop = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings").getRange("b9").getValue().getHours();
   
+    scriptProperties.setProperty('quietStart',quietStart).setProperty('quietEnd',quietStop);
+    
+   var callbackURL = "https://script.google.com/macros/d/" + ScriptApp.getScriptId() + "/usercallback";
+   SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Setup").getRange('b17').setValue(callbackURL);
 
-  var tagsUrl = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("_ebooks").getRange('b15').getValues();
-  
-  var tagss = SpreadsheetApp.openByUrl(tagsUrl);
-  
-  var settings = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("_ebooks").getRange('c20:c21').getValues();
-  Logger.log(settings);
-  var ss = tagss.getSheetByName("Archive");
-  
-  var lastRow = ss.getLastRow();
-  
-  var tweets = [];
-  var beginnings = [];
-  var endings = [];
-  var data = new Object();
-  
-  // gather some tweets
-  
-  var allTweets = tagss.getSheetByName("Archive").getRange("c2:c"+lastRow).getValues();
-  
-  for (var z = 0; z < allTweets.length; z++){
-   // Logger.log(allTweets[z]);
     
-    var tweet = allTweets[z][0];
-    
-    // remove some things (later make optional)
-    var twt = tweet.replace(/https?:\/\/t\.co\/[a-z0-9]+/ig, '').replace(/RT :/, '');
-    
-    // check whether to remove hashtags 
-    var stripTags = settings[0][0];
-    var stripAts = settings[1][0];
-   
-     Logger.log(stripTags + " and " + stripAts);
-    
-    if (stripTags === "yes"){
-     twt = twt.replace(/#[a-zA-Z0-9_]+/g, '').replace(/RT :/, '');
-    }
-    
-     if (stripAts === "yes"){
-     Logger.log("Removing @'s");
-     twt = twt.replace(/@[a-zA-Z0-9_]+/g, '').replace(/RT :/, '');
-    }
-    
-    var asList = twt.split(" "); 
-    
-    // build a list of beginnings and endings
-    beginnings.push(asList[0]);
-    endings.push(asList[ asList.length - 1 ]);
-
-         
-    // push the words into the data structure
-     for (var t = 0; t < asList.length - 1; t++){
-      if (typeof data[asList[t]] == 'object'){
-        if (asList[t + 1].length > 0 & typeof asList[t + 1] !== 'undefined'){
-          data[asList[t]].push(asList[t + 1]); 
-        }
-      }else{
-        data[asList[t]] = new Array();
-        if (asList[t + 1].length > 0 & typeof asList[t + 1] !== 'undefined'){
-          data[asList[t]].push(asList[t + 1]); 
-        }
-     }
-    }
-  }
-  
-  
-  // build it
-  for (var q = 0; q < quota; q++){
-  // start with a beginning
-  var msg = '';
-  while (msg.length == 0){
-   msg =  beginnings[Math.floor(Math.random() * beginnings.length - 1)];  
-  }
-
- var dead = false;
-  while (msg.length < 120 & dead === false){
-    var sofar = msg.split(" ");
-    var trunk = sofar[sofar.length - 1];
-    if (typeof data[trunk] !== 'undefined'){
-      var branch = data[trunk][ Math.floor((Math.random() * data[trunk].length)) ];
-      if (typeof branch !== 'undefined' & endings.indexOf(branch) < 0){
-        msg = msg + " " + branch; 
-      }else{
-       dead = true; 
-      }
-    }else{
-      dead = true; 
-    }    
-  }
-  
-  Logger.log(msg);
-  
-  
-  return msg;
-  
-}
 }
 
-/*
- 
- GENERATE TWEETS BY SELECTING ONE CELL FROM EACH COLUMN
- 
-*/
+//function everyRotate () {
+//
+//    var everySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Every");      
+//    var lastRow = everySheet.getLastRow();
+//    var rows = [];
+//    
+//    for (var r = 3; r <= lastRow; r++){
+//        rows.push(everySheet.getRange("b" + r + ":z" + r).getValues());      
+//    }
+//    
+//    var next = rows[0];    
+//    rows.push(next);
+//    
+//    for (var n = 3; n <= lastRow; n++){
+//      everySheet.getRange("b" + n + ":z" + n).setValues(rows[n - 2]);
+//    }
+//    
+//}
 
-function getColumnSelectText(count) {
-  
-   
-  if (typeof count !== 'undefined'){
-   var quota = count; 
-  }else{
-   var quota = 1; 
-  }
-  
-  var rows = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Select from Columns").getDataRange();
-  var values = rows.getValues();
-  var numRows = rows.getNumRows();
-  var numCols = rows.getNumColumns();
-  
-  var list = new Array();
-  
-  for (var r = 4; r < numRows; r++){
+function everyRotate(){
+    var everySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Every");      
+    var lastRow = everySheet.getLastRow();
+    var nextLastRow = lastRow + 1;
     
-    var thisRow = values[r];
-    
-    for (var c = 1; c < numCols; c++){
-      
-      if (typeof thisRow[c] !== 'undefined'){
-        if (typeof list[c] == 'undefined'){
-          list[c] = new Array();
-        }
-        list[c].push(thisRow[c]);
-      }
-      
-    }
-   }
+    // copy the value of row 3 to the end of the column
+    var nextValues = everySheet.getRange("b3:z3").getValues();
+    everySheet.getRange("b"+lastRow+":z"+lastRow).setValues(nextValues);
+    everySheet.deleteRow(3);
   
-  
-  for (var q = 0; q < quota; q++){
-    var tweet = '';
-    for (var k = 1; k < list.length; k++){
-      if (tweet.length < 140){
-        
-        // actual length
-        
-        var len = 0;
-        
-        for (var l = 0; l < list[k].length; l++){
-          if (typeof list[k][l] !== 'undefined'){
-            if (list[k][l].length > 0){
-              len = l;
-            }
-          }
-        }
-        
-        var word = list[k][Math.floor(Math.random()*(len + 1))];
-        
-        // make sure word is not undefined
-        if (typeof (word) != 'undefined'){
-          
-          if (typeof (word) != 'string'){
-            word = JSON.stringify(word); 
-          }
-          
-          var tweaked = word.replace(/\\n/g, "\n");
-          tweet = tweet + " " + tweaked;
-        }
-      }
-    }
-    
-    
-    
-    return tweet;
-  }
-  
-}
-
-/*
- 
- MAKE TWEETS BY SELECTING ONE CELL FROM EACH ROW
- 
-*/
-
-
-function getRowSelectText(count){
-  
-   
-  if (typeof count !== 'undefined'){
-   var quota = count; 
-  }else{
-   var quota = 1; 
-  }
-  // select one cell from each row
-  
-  var rows = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Select from Rows").getDataRange();
-  var values = rows. getValues();
-  var numRows = rows.getNumRows();
-  var list = new Array();
-    
-  for (var i = 4; i <= numRows - 1; i++){
-    var row = values[i];
-    list[i] = new Array();
-    
-    // find the actual limit of this row
-    var len = 0;
-    for (var j = 1; j <= row.length; j++){
-      if (row[j]){
-        list[i][j] = row[j]; 
-      }
-    }
-  }
-  
- 
-  for (var q = 0; q < quota; q++){
-       var tweet = '';
-       for (var k = 4; k < list.length; k++){
-    if (tweet.length < 140){
-      // Logger.log(list[k]);
-      var word = list[k][Math.floor(Math.random()*(list[k].length - 1)) + 1];
-      
-      // make sure word is not undefined
-      if (typeof (word) != 'undefined'){
-        
-        if (typeof (word) != 'string'){
-          word = JSON.stringify(word); 
-        }
-        
-        var tweaked = word.replace(/\\n/g, "\n");
-        tweet = tweet + " " + tweaked;
-      }
-      
-    }
-  }
-  
-  Logger.log(tweet);
-  
-  return tweet;
-}
-}
-
-/* 
- 
- USE THE TEXT IN THE "MARKOV" SHEET TO MAKE NONSENSE
-
-*/
-
-function getMarkovText(count) {
-  
-   
-  if (typeof count !== 'undefined'){
-   var quota = count; 
-  }else{
-   var quota = 1; 
-  }
-  
-  // grab the appropriate spreadsheet
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Markov');
-  
-  // get all the text, from b5 and following
-  var range = sheet.getRange('b5:b'+sheet.getLastRow());
-  var txt = range.getValues().join(" ").replace("  ", " ").split(" ");
-
-  // make words into data
-  var data = new Object();  
-  var firsts = new Array();
-  var lasts = new Array();
-  for (var i = 0; i < txt.length - 1; i++){
-    
-    if (/[A-Z]/.test(txt[i][0])){
-      firsts.push(txt[i]);
-    }
-    
-    if(/[\.|\?]"?$/.test(txt[i])){
-      if(firsts.indexOf(txt[i]) < 0){
-        lasts.push(txt[i]); 
-      }
-    }
-    
-    if (typeof data[txt[i]] == 'object'){
-      if (txt[i + 1].length > 0){
-        data[txt[i]].push(txt[i + 1]); 
-      }
-    }else{
-      data[txt[i]] = new Array();
-      if (txt[i + 1].length > 0){
-        data[txt[i]].push(txt[i + 1]); 
-      }
-    }   
-  }
-  
-//  Logger.log(lasts);
-  
- // return;
-
-  // build it
-  
-  //var seed = Math.floor((Math.random() * Object.keys(data).length) + 1);
-  
-  for (var q = 0; q < quota; q++){
-  
-    var seed = Math.floor(Math.random() * firsts.length);
-    
-    var msg = firsts[seed];
-    var dead = false;
-    while (msg.length < 120 & dead === false){
-      var sofar = msg.split(" ");
-      var trunk = sofar[sofar.length - 1];
-      
-      
-      if (typeof data[trunk] !== 'undefined' & lasts.indexOf(trunk) < 0){
-        var branch = data[trunk][ Math.floor((Math.random() * data[trunk].length)) ];
-        if (typeof branch !== 'undefined'){ msg = msg + " " + branch; }else{ dead = true; } 
-      }else{
-        dead = true; 
-      }    
-    }
-    
-    //Logger.log(firsts);
-    //Logger.log(msg);
-    return msg;
-  }
 }
 
 
 
-/*
- *    SETUP  
- *
-*/
+
 
 
 function preview () {
+
+ var properties = PropertiesService.getScriptProperties().getProperties();
+
   
   // set up and clear preview sheet
-  var previewSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Preview Output");
+  var previewSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Preview");
   previewSheet.getRange('b4:b20').setValue(" ");
   SpreadsheetApp.getActiveSpreadsheet().setActiveSheet(previewSheet);
   
-  // figure out what type of tweets to make
-  var sheetNameToGet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Setup").getRange('b43').getValue();
-  
-  switch(sheetNameToGet){
-    case "Markov":
+  switch(properties.constructor){
+    case "markov":
       var textFunction = getMarkovText;
       break;
-    case "Select from Rows":
+    case "rows":
       var textFunction = getRowSelectText;
       break;
-    case "Select from Columns":
+    case "columns":
       var textFunction = getColumnSelectText;
       break;
     case "_ebooks":
       var textFunction = getEbooksText;
+      break;
+    case "every":
+      var textFunction = getEveryText;
+      break;
+    case "x + y":
+      var textFunction = getXYText;
       break;
     default:
       Logger.log("I don't know what happened, but I can't figure out what sort of text to generate.");     
@@ -408,18 +156,14 @@ function preview () {
 }
 
 function setTiming () {
+
+  var properties = PropertiesService.getScriptProperties().getProperties();
+
   
   // clear any existing triggers
-  var triggers = ScriptApp.getProjectTriggers();
-  for (var i = 0; i < triggers.length; i++) {
-    ScriptApp.deleteTrigger(triggers[i]);
-  }
-  
-  // get the value set in the timing menu
-  
-  var setting = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Setup").getRange('b54').getValue();
-  
-  switch (setting){
+  clearTiming();
+      
+  switch (properties.timing){
     case "12 hours":
       var trigger = ScriptApp.newTrigger("generateSingleTweet")
       .timeBased()
@@ -508,7 +252,6 @@ function onOpen() {
   
   var ui = SpreadsheetApp.getUi();
   ui.createMenu('Bot')
-  
       .addItem('Generate Preview', 'preview')
       .addSeparator()
       .addItem('Send a Test Tweet', 'generateSingleTweet')
@@ -517,22 +260,26 @@ function onOpen() {
       .addItem('Start Posting Tweets', 'setTiming')
       .addItem('Stop Posting Tweets', 'clearTiming')
       .addToUi();
-  
-  
-
-};
+ 
+   // add callback URL  
+   var callbackURL = "https://script.google.com/macros/d/" + ScriptApp.getScriptId() + "/usercallback";
+   SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Initial Setup").getRange('b17').setValue(callbackURL);
+ 
+   updateSettings();
+}
 
 function getTwitterService() {
   
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName('Setup');
   var twitter_name = sheet.getRange('b9').getValue();
-  var consumer_key = sheet.getRange('b23').getValue();
-  var consumer_secret = sheet.getRange('b26').getValue();
-  var project_key = sheet.getRange('b32').getValue();
- 
-  var service = OAuth1.createService('twitter');
-   
+  var consumer_key = sheet.getRange('b24').getValue();
+  var consumer_secret = sheet.getRange('b27').getValue();
+  //var project_key = sheet.getRange('b32').getValue();
+  var project_key = ScriptApp.getScriptId();
+  
+ // var service = OAuth1.createService('twitter');
+  var service = Twitterlib.createService('twitter');
   service.setAccessTokenUrl('https://api.twitter.com/oauth/access_token');
   
   service.setRequestTokenUrl('https://api.twitter.com/oauth/request_token');
@@ -561,7 +308,7 @@ function authCallback(request) {
 }
 
 function fixedEncodeURIComponent (str) {
-  return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+  return encodeURIComponent(str).replace(/[!'()*&]/g, function(c) {
     return '%' + c.charCodeAt(0).toString(16);
   });
 }
@@ -578,32 +325,115 @@ function authorizationRevoke(){
 */
 
 function generateSingleTweet() {
-  
-  // figure out what to get
-  var sheetNameToGet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Setup").getRange('b43').getValue();
-  
-  switch(sheetNameToGet){
-    case "Markov":
+
+  var properties = PropertiesService.getScriptProperties().getProperties();
+
+  switch(properties.constructor){
+    case "markov":
       var textFunction = getMarkovText;
       break;
-    case "Select from Rows":
+    case "rows":
       var textFunction = getRowSelectText;
       break;
-    case "Select from Columns":
+    case "columns":
       var textFunction = getColumnSelectText;
       break;
     case "_ebooks":
       var textFunction = getEbooksText;
       break;
+    case "every":
+      var textFunction = getEveryText;
+      break;
+    case "x + y":
+      var textFunction = getXYText;
+      break;
     default:
-      Logger.log("I don't know what happened or why, but I can't figure out what sort of text to generate.");     
+      Logger.log("I don't know what happened, but I can't figure out what sort of text to generate.");     
   }
   
   var tweet = textFunction();
-  
-  doTweet(tweet);
-  
+    
+  if (typeof tweet != 'undefined' && 
+      tweet.length > properties.min && 
+      !wordFilter(tweet) &&
+      !curfew() ){ 
+    doTweet(tweet); 
+  }else{
+    Logger.log("Too short, or some other problem.");
+    Logger.log(tweet);
+    Logger.log("Wordfilter: " + wordFilter(tweet));
+  }
+ 
 }
+
+function curfew () {
+  var properties = PropertiesService.getScriptProperties().getProperties();
+
+ // check the time
+  
+  var time = new Date();
+  var hour = time.getHours();
+
+  var quietBegin = properties.quietStart;
+  var quietEnd = properties.quietEnd;
+  
+  if (quietBegin == quietEnd){
+    return false;
+  }
+  
+  if (quietEnd > quietBegin){  
+    if (hour >= quietBegin & hour < quietEnd){
+      Logger.log("Quiet hours");
+      return true;
+    }
+  }else{
+    if (hour >= quietBegin | hour < quietEnd){
+      Logger.log("Quiet hours");
+      return true;
+    }
+  }
+  
+  return false;
+}
+
+function getMediaIds(tweet){
+  
+  //var tweet = 'Testing http://i.imgur.com/AsghXmB.png http://i.imgur.com/Di9t0XB.jpg';
+  
+  var urls = tweet.match(/http:.*?(\.png|\.jpg|\.gif)/g);
+ 
+  if (urls.length > 0){
+    var media = [];
+    for (var u = 0; u < urls.length; u++){
+      
+        var service = getTwitterService();
+
+        if (service.hasAccess()) {
+          var snek = getSnek(urls[u]);
+          var mediaPayload = {'media_data' : snek};
+          
+          var parameters = {
+            method: 'post',
+            payload: mediaPayload  
+          };
+          var result = service.fetch('https://upload.twitter.com/1.1/media/upload.json', parameters);
+          var response = JSON.parse(result.getContentText());    
+          media.push(response.media_id_string);
+        } else {
+          var authorizationUrl = service.authorize();
+          //msgPopUp("<iframe src='" + authorizationUrl + "&output=embed' width='600' height='500'></iframe>");
+          msgPopUp('<p>Please visit the following URL and then re-run "Send a Test Tweet": <br/> <a target="_blank" href="' + authorizationUrl + '">' + authorizationUrl + '</a></p>');
+        }
+      
+    }
+  }else{
+    return []; // this is probably unecessary
+  }
+  
+  Logger.log(media);
+  return media;
+}
+
 
 /*
  * Do the actual sending of a single tweet.
@@ -611,37 +441,59 @@ function generateSingleTweet() {
 */
 
 function doTweet (tweet) {
+  var properties = PropertiesService.getScriptProperties().getProperties();
   
-  var service = getTwitterService();
+  
+  // if Image URL attaching is on, and one or more are found, pass the tweet to a function that will do the upload and 
+  // return an array of media_ids
+  
+  if (properties.img == 'Yes' &&
+      tweet.match(/\.jpg|\.gif|\.png/)
+    ){  
+    var media = getMediaIds(tweet);
+    tweet = tweet.replace(/http:.*?(\.png|\.jpg|\.gif)/g,'');
+   
+  }
+
+   var service = getTwitterService();
   
   if (service.hasAccess()) {
-    var status = 'https://api.twitter.com/1.1/statuses/update.json';
-    var payload = "status=" + fixedEncodeURIComponent(tweet);
-    
+
+    if (typeof media != 'undefined' && media.length > 0){
+      var payload = {status : tweet, media_ids: media};
+    }else{
+      var payload = {status : tweet};
+    }
   } else {
     var authorizationUrl = service.authorize();
-    //msgPopUp("<iframe src='" + authorizationUrl + "&output=embed' width='600' height='500'></iframe>");
     msgPopUp('<p>Please visit the following URL and then re-run "Send a Test Tweet": <br/> <a target="_blank" href="' + authorizationUrl + '">' + authorizationUrl + '</a></p>');
   }
 
   var parameters = {
-    "method": "POST",
-    "escaping": false,
-    "payload" : payload
+    method: 'post',
+    payload : payload
   };
-
   try {
     var result = service.fetch('https://api.twitter.com/1.1/statuses/update.json', parameters);
     Logger.log(result.getContentText());    
+    var response = JSON.parse(result.getContentText());
+    
+    if (response.created_at && properties.constructor === 'every'){ 
+      everyRotate();
+    }
+    
+    doLog(response,tweet,'Success');
   }  
   catch (e) {    
     Logger.log(e.toString());
+    doLog(e,'n/a','Error');
   }
 
 }
 
+
 function msgPopUp (msg) {
-  var content = '<div style="font-family: Verdana;font-size: 22px; text-align:left; width: 95%; margin: 0 auto;">' + msg + '</div>';
+  var content = '<div style="font-family: Verdana;font-size: 22px; text-align:left; width: 80%; margin: 0 auto;">' + msg + '</div>';
    var htmlOutput = HtmlService
    .createHtmlOutput(content)
      .setSandboxMode(HtmlService.SandboxMode.IFRAME)
@@ -652,25 +504,73 @@ function msgPopUp (msg) {
 }
 
 
+function onEdit(e){
+  updateSettings();
+}
+
 
 
 /*
- * Vestigial.
- *
-*/
-function listTweets() {
-  var service = getTwitterService();
-  if (service.hasAccess()) {
-    var url = 'https://api.twitter.com/1.1/statuses/user_timeline.json';
-    var response = service.fetch(url);
-    var tweets = JSON.parse(response.getContentText());
-    for (var i = 0; i < tweets.length; i++) {
-      Logger.log(tweets[i].text);
-    }
-  } else {
-    var authorizationUrl = service.authorize();
-    
-    Logger.log('Please visit the following URL and then re-run the script: ' + authorizationUrl);
 
+ There are some words that your bot should not say. This function checks to make sure that it's not saying those words. 
+ Based on Darius Kazemi's wordfilter: https://www.npmjs.com/package/wordfilter
+ 
+*/
+
+function wordFilter(text){
+
+  var properties = PropertiesService.getScriptProperties().getProperties();
+ 
+  if (properties.ban.length > 1){
+     var more = properties.ban.split(","); 
   }
+  
+  
+
+  var badList = [
+     "beeyotch","biatch","bitch","chinaman","chinamen","chink","crip","cunt","dago","daygo","dego","dick","douchebag","dyke","fag","fatass","fatso","gash","gimp","golliwog","gook","gyp","halfbreed","half-breed","homo","hooker","jap","kike","kraut","lame","lardass","lesbo","negro","nigga","nigger","paki","pickaninny","pussy","raghead","retard","shemale","skank","slut","spade","spic","spook","tard","tits","titt","trannies","tranny","twat","wetback","whore","wop"
+  ];
+  
+  var banned = new Array();
+  
+  if (properties.ban.length > 1){
+    var banned = badList.concat(properties.ban.split(","));
+  }
+   
+ Logger.log(banned);
+  
+  for (var w = 0; w <= banned.length; w++){
+    
+    var filter = new RegExp(banned[w]);
+  
+    if (filter.test(text)){
+      return true;
+    }
+  }
+  return false;
+}
+
+function doLog(msg,tweet,status){
+  
+ 
+  var d = new Date();
+  
+  var currentTime = d.toLocaleTimeString();
+  
+  var ls = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("log");
+ // var logVals = new Array();
+  var logVals = [[currentTime,status,tweet,msg]];
+  
+  ls.insertRowBefore(2);
+  ls.getRange("A2:D2").setValues(logVals);
+  
+}
+
+function getSnek (imgUrl) {
+ 
+  var response = UrlFetchApp.fetch(imgUrl);
+  
+  var result = response.getContent();
+  return Utilities.base64Encode(result);
+
 }
