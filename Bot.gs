@@ -51,7 +51,7 @@
 */
 
 function updateSettings () {
-  var ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings").getRange("b4:b14").getValues();
+  var ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings").getRange("b4:b15").getValues();
   var scriptProperties = PropertiesService.getScriptProperties();
   
   scriptProperties.
@@ -63,7 +63,8 @@ function updateSettings () {
     setProperty('depth',ss[7].toString()).
     setProperty('ban',ss[8].toString()).
     setProperty('removeHashes',ss[9].toString()).
-    setProperty('removeMentions',ss[10].toString());
+    setProperty('removeMentions',ss[10].toString()).
+    setProperty('everyFail',ss[11].toString());
     
     var quietStart = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings").getRange("b8").getValue().getHours();
     var quietStop = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings").getRange("b9").getValue().getHours();
@@ -76,35 +77,25 @@ function updateSettings () {
     
 }
 
-//function everyRotate () {
-//
-//    var everySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Every");      
-//    var lastRow = everySheet.getLastRow();
-//    var rows = [];
-//    
-//    for (var r = 3; r <= lastRow; r++){
-//        rows.push(everySheet.getRange("b" + r + ":z" + r).getValues());      
-//    }
-//    
-//    var next = rows[0];    
-//    rows.push(next);
-//    
-//    for (var n = 3; n <= lastRow; n++){
-//      everySheet.getRange("b" + n + ":z" + n).setValues(rows[n - 2]);
-//    }
-//    
-//}
-
 function everyRotate(){
+
     var everySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Every");      
     var lastRow = everySheet.getLastRow();
-    var nextLastRow = lastRow + 1;
+    // var nextLastRow = lastRow + 1;
     
-    // copy the value of row 3 to the end of the column
-    var nextValues = everySheet.getRange("b3:z3").getValues();
-    everySheet.getRange("b"+lastRow+":z"+lastRow).setValues(nextValues);
-    everySheet.deleteRow(3);
+    
+    var indexColumn = everySheet.getRange("a"+1+":a"+lastRow).getValues();
   
+    var activeRow = 3;
+    for (var i = 0; i < lastRow; i++){
+      if (indexColumn[i][0].match(/next/i)){
+        activeRow = i + 1;
+      }
+    }
+    var nextRow = activeRow + 1;
+    everySheet.getRange("a"+activeRow).setValue("");
+    everySheet.getRange("a"+nextRow).setValue("next-->");
+    
 }
 
 
@@ -114,7 +105,7 @@ function everyRotate(){
 
 function preview () {
 
- var properties = PropertiesService.getScriptProperties().getProperties();
+  var properties = PropertiesService.getScriptProperties().getProperties();
 
   
   // set up and clear preview sheet
@@ -251,21 +242,40 @@ function clearTiming () {
 function onOpen() {
   
   var ui = SpreadsheetApp.getUi();
-  ui.createMenu('Bot')
-      .addItem('Generate Preview', 'preview')
-      .addSeparator()
-      .addItem('Send a Test Tweet', 'generateSingleTweet')
+//  ui.createMenu('Bot')
+//      .addItem('Generate Preview', 'preview')
+//      .addSeparator()
+//      .addItem('Send a Test Tweet', 'generateSingleTweet')
+//      .addItem('Revoke Twitter Authorization', 'authorizationRevoke')
+//      .addSeparator()
+//      .addItem('Start Posting Tweets', 'setTiming')
+//      .addItem('Stop Posting Tweets', 'clearTiming')
+//      .addToUi();
+      
+   ui.createMenu('Bot')
+      .addItem('Authorize with Twitter','generateSingleTweet')
       .addItem('Revoke Twitter Authorization', 'authorizationRevoke')
       .addSeparator()
-      .addItem('Start Posting Tweets', 'setTiming')
-      .addItem('Stop Posting Tweets', 'clearTiming')
+      .addItem('Generate Preview', 'preview')
+      .addItem('Send a Test Tweet', 'generateSingleTweet')
+      .addSeparator()
+      .addItem('Start Scheduled Posts', 'setTiming')
+      .addItem('Stop Scheduled Posts', 'clearTiming')
+      .addSeparator()
+      .addItem('Clear Log', 'clearLog')
       .addToUi();
  
    // add callback URL  
    var callbackURL = "https://script.google.com/macros/d/" + ScriptApp.getScriptId() + "/usercallback";
-   SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Initial Setup").getRange('b17').setValue(callbackURL);
+   SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Setup").getRange('b17').setValue(callbackURL);
  
    updateSettings();
+}
+
+function clearLog(){
+  var logSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Log");
+  var lastRow = logSheet.getLastRow();
+  var clearRange = logSheet.getRange("a2:d"+lastRow).clearContent();
 }
 
 function getTwitterService() {
@@ -352,11 +362,20 @@ function generateSingleTweet() {
   }
   
   var tweet = textFunction();
-    
+      
   if (typeof tweet != 'undefined' && 
       tweet.length > properties.min && 
       !wordFilter(tweet) &&
       !curfew() ){ 
+       if (properties.removeMentions == 'yes'){        
+         tweet = tweet.replace(/@[a-zA-Z0-9_]+/g, '');
+       }
+       if (properties.removeHashes == 'yes'){        
+         tweet = tweet.replace(/#[a-zA-Z0-9_]+/g, '');
+       }
+       while(tweet.match(/ {2}/g)){
+         tweet = tweet.replace(/ {2}/,' ');
+       }
     doTweet(tweet); 
   }else{
     Logger.log("Too short, or some other problem.");
@@ -400,7 +419,7 @@ function getMediaIds(tweet){
   
   //var tweet = 'Testing http://i.imgur.com/AsghXmB.png http://i.imgur.com/Di9t0XB.jpg';
   
-  var urls = tweet.match(/http:.*?(\.png|\.jpg|\.gif)/g);
+  var urls = tweet.match(/https?:.*?(\.png|\.jpg|\.gif)/g);
  
   if (urls.length > 0){
     var media = [];
@@ -427,11 +446,11 @@ function getMediaIds(tweet){
       
     }
   }else{
-    return []; // this is probably unecessary
+    return []; // this is probably unnecessary
   }
   
   Logger.log(media);
-  return media;
+  return media.join(',');
 }
 
 
@@ -447,22 +466,23 @@ function doTweet (tweet) {
   // if Image URL attaching is on, and one or more are found, pass the tweet to a function that will do the upload and 
   // return an array of media_ids
   
-  if (properties.img == 'Yes' &&
+  if (properties.img == 'yes' &&
       tweet.match(/\.jpg|\.gif|\.png/)
     ){  
     var media = getMediaIds(tweet);
-    tweet = tweet.replace(/http:.*?(\.png|\.jpg|\.gif)/g,'');
-   
+    tweet = tweet.replace(/https?:.*?(\.png|\.jpg|\.gif)/g,'');
+    
   }
 
    var service = getTwitterService();
   
   if (service.hasAccess()) {
 
-    if (typeof media != 'undefined' && media.length > 0){
+    if (typeof media != 'undefined' && media.length > 0){     
       var payload = {status : tweet, media_ids: media};
-    }else{
-      var payload = {status : tweet};
+      
+    }else{     
+      var payload = {status :tweet};
     }
   } else {
     var authorizationUrl = service.authorize();
@@ -473,6 +493,8 @@ function doTweet (tweet) {
     method: 'post',
     payload : payload
   };
+ 
+  
   try {
     var result = service.fetch('https://api.twitter.com/1.1/statuses/update.json', parameters);
     Logger.log(result.getContentText());    
@@ -483,10 +505,16 @@ function doTweet (tweet) {
     }
     
     doLog(response,tweet,'Success');
+   
   }  
   catch (e) {    
     Logger.log(e.toString());
     doLog(e,'n/a','Error');
+    if (properties.constructor === 'every'){
+      if (properties.everyFail === 'skip'){
+        everyRotate();
+      }
+    }
   }
 
 }
@@ -528,16 +556,18 @@ function wordFilter(text){
   
 
   var badList = [
-     "beeyotch","biatch","bitch","chinaman","chinamen","chink","crip","cunt","dago","daygo","dego","dick","douchebag","dyke","fag","fatass","fatso","gash","gimp","golliwog","gook","gyp","halfbreed","half-breed","homo","hooker","jap","kike","kraut","lame","lardass","lesbo","negro","nigga","nigger","paki","pickaninny","pussy","raghead","retard","shemale","skank","slut","spade","spic","spook","tard","tits","titt","trannies","tranny","twat","wetback","whore","wop"
+     "beeyotch","biatch","bitch","chinaman","chinamen","chink","cuck","crip","cunt","dago","daygo","dego","dick","douchebag","dyke","fag","fatass","fatso","gash","gimp","golliwog","gook","gyp","halfbreed","half-breed","homo","hooker","jap","kike","kraut","lame","lardass","lesbo","negro","nigga","nigger","paki","pickaninny","pussy","raghead","retard","shemale","skank","slut","spade","spic","spook","tard","tits","titt","trannies","tranny","twat","wetback","whore","wop"
   ];
   
   var banned = new Array();
   
   if (properties.ban.length > 1){
     var banned = badList.concat(properties.ban.split(","));
+  }else{
+    var banned = badList;
   }
    
- Logger.log(banned);
+ //Logger.log(banned);
   
   for (var w = 0; w <= banned.length; w++){
     
