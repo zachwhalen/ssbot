@@ -1,6 +1,6 @@
 /* 
 
-   A Spreadsheet-powered Twitter Bot Engine, version 0.5.2, October 2017
+   A Spreadsheet-powered Twitter Bot Engine, version 0.5.3, July 2019
    
    by Zach Whalen (@zachwhalen, zachwhalen.net)
    
@@ -298,7 +298,7 @@ function getTwitterService() {
   service.setAuthorizationUrl('https://api.twitter.com/oauth/authorize');
   service.setConsumerKey(consumer_key);
   service.setConsumerSecret(consumer_secret);
-  service.setProjectKey(project_key);
+  service.setScriptId(project_key);
   service.setCallbackFunction('authCallback');
   service.setPropertyStore(PropertiesService.getScriptProperties());
   
