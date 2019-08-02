@@ -419,7 +419,7 @@ function getMediaIds(tweet){
   
   //var tweet = 'Testing http://i.imgur.com/AsghXmB.png http://i.imgur.com/Di9t0XB.jpg';
   
-  var urls = tweet.match(/https?:.*?(\.png|\.jpg|\.gif)/g);
+  var urls = tweet.match(/https?:.*?(\.png|\.jpg|\.gif)/gi);
  
   if (urls.length > 0){
     var media = [];
@@ -467,10 +467,10 @@ function doTweet (tweet) {
   // return an array of media_ids
   
   if (properties.img == 'yes' &&
-      tweet.match(/\.jpg|\.gif|\.png/)
+      tweet.match(/\.jpg|\.gif|\.png/i)
     ){  
     var media = getMediaIds(tweet);
-    tweet = tweet.replace(/https?:.*?(\.png|\.jpg|\.gif)/g,'');
+    tweet = tweet.replace(/https?:.*?(\.png|\.jpg|\.gif)/gi,'');
     
   }
 
