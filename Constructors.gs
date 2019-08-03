@@ -8,7 +8,7 @@ function test () {
 function getEbooksText (count) {
 
   var p = PropertiesService.getScriptProperties().getProperties();
-
+  var tweets = new Array();
   
   if (typeof count !== 'undefined'){
    var quota = count; 
@@ -151,13 +151,14 @@ for (var q = 0; q < quota; q++){
       
       //Logger.log(firsts);
       if (msg.length > p.min){
-        return msg;
+        tweets.push(msg);
         tries = 101;
       }else{      
         tries += 1;
       }
     }
   }
+  return tweets;
 }
 
 
@@ -183,6 +184,7 @@ function oldEveryText (count){
 
 function getEveryText(count){
   var p = PropertiesService.getScriptProperties().getProperties();
+  var tweets = new Array();
   if (typeof count !== 'undefined'){
    var quota = count; 
   }else{
@@ -200,30 +202,38 @@ function getEveryText(count){
     }
   }
   
-  var tweet = everySheet.getRange("b" + activeRow + ":z" + activeRow).getValues()[0].join(' ');
-  
-  if (!tweet.match(/\*\*\*STOP\*\*\*/)){
-    return tweet;
+  var tempLastRow = lastRow - 2;
+  for(i = (activeRow - 3); i < (activeRow - 3) + quota; i++) {
+    var temp = (i % tempLastRow) + 3;
+
+    var tweet = everySheet.getRange("b" + temp + ":z" + temp).getValues()[0].join(' ');
+    
+    if (!tweet.match(/\*\*\*STOP\*\*\*/)){
+      tweets.push(tweet);
+    }else{
+      break; //Stop finding more records due to stop condition
+    }
   }
+  return tweets;
 }
 
 
 function getMarkovText(count) {
   
   var p = PropertiesService.getScriptProperties().getProperties();
+  var tweets = new Array();
 
-  
+  if (typeof count !== 'undefined'){
+    var quota = count; 
+   }else{
+    var quota = 1; 
+   }
+ 
   // Tuning
   var depth = p.depth; 
   var exclTitles = /Mr|Mrs|Ms|Dr|Jr/ig;
   var stripQuotes = 1;
-  
-  if (typeof count !== 'undefined'){
-   var quota = count; 
-  }else{
-   var quota = 1; 
-  }
-  
+    
   // grab the appropriate spreadsheet
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('markov');
   
@@ -324,15 +334,23 @@ function getMarkovText(count) {
     
     //Logger.log(firsts);
     if (msg.length > p.min){
-      return msg;
+      tweets.push(msg);
     }
   }
+  return tweets;
 }
 
-function getXYText () {
+function getXYText (count) {
 
  var p = PropertiesService.getScriptProperties().getProperties();
+ var tweets = new Array();
+ if (typeof count !== 'undefined'){
+  var quota = count; 
+ }else{
+  var quota = 1; 
+ }
 
+ for (i = 0; i < quota; i++) {
  var half = (p.max / 2) - 10;
 
  var xySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("x + y");    
@@ -403,8 +421,10 @@ function getXYText () {
  
  msg = msg.replace(",,",",");
   if (msg.length < p.max){
-    return msg;
+    tweets.push(msg);
    }
+  }
+  return tweets;
  }
  
  
@@ -418,7 +438,7 @@ function getXYText () {
 function getColumnSelectText(count) {
   
   var p = PropertiesService.getScriptProperties().getProperties();
-  
+  var tweets = new Array();  
    
   if (typeof count !== 'undefined'){
    var quota = count; 
@@ -484,10 +504,10 @@ function getColumnSelectText(count) {
     
     
     if (tweet.length > p.min){
-      return tweet;
+      tweets.push(tweet);
     }
   }
-  
+  return tweets
 }
 
 /*
@@ -500,7 +520,7 @@ function getColumnSelectText(count) {
 function getRowSelectText(count){
   
   var p = PropertiesService.getScriptProperties().getProperties();
-
+  var tweets = new Array();
   
   if (typeof count !== 'undefined'){
    var quota = count; 
@@ -550,8 +570,9 @@ function getRowSelectText(count){
   }
  
    if (tweet.length > p.min){
-      return tweet;
+      tweets.push(tweet);
    }
  
 }
+  return tweets
 } 

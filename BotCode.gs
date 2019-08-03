@@ -1,6 +1,6 @@
 /* 
 
-   A Spreadsheet-powered Twitter Bot Engine, version 0.5.3, July 2019
+   A Spreadsheet-powered Twitter Bot Engine, version 0.5.3, August 2019
    
    by Zach Whalen (@zachwhalen, zachwhalen.net)
    
@@ -99,20 +99,9 @@ function everyRotate(){
 }
 
 
-
-
-
-
-function preview () {
-
+function getTweets(count) {  
   var properties = PropertiesService.getScriptProperties().getProperties();
 
-  
-  // set up and clear preview sheet
-  var previewSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Preview");
-  previewSheet.getRange('b4:b20').setValue(" ");
-  SpreadsheetApp.getActiveSpreadsheet().setActiveSheet(previewSheet);
-  
   switch(properties.constructor){
     case "markov":
       var textFunction = getMarkovText;
@@ -135,12 +124,25 @@ function preview () {
     default:
       Logger.log("I don't know what happened, but I can't figure out what sort of text to generate.");     
   }
-    
+  return textFunction(count);
+}
+
+
+
+function preview () {
+
+  var properties = PropertiesService.getScriptProperties().getProperties();
+
+  // set up and clear preview sheet
+  var previewSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Preview");
+  previewSheet.getRange('b4:b20').setValue(" ");
+  SpreadsheetApp.getActiveSpreadsheet().setActiveSheet(previewSheet);
   
-  for (var p = 0; p < 16; p++){
+  var tweets = getTweets(16);
+  
+  for (var p = 0; p < tweets.length; p++){
     var offset = p + 5;
-    var prv = textFunction(10); // change this value if you want more or less preview output
-    previewSheet.getRange('b'+offset).setValue(prv);  
+    previewSheet.getRange('b'+offset).setValue(tweets[p]);  
   }
   
   
@@ -331,37 +333,14 @@ function authorizationRevoke(){
 
 /*
  * This is the function that finds a single tweet and passes it on to be sent out.
- * I suppose this could be combined with the preview-generation function but hey I have other stuff to do.
 */
 
 function generateSingleTweet() {
 
   var properties = PropertiesService.getScriptProperties().getProperties();
-
-  switch(properties.constructor){
-    case "markov":
-      var textFunction = getMarkovText;
-      break;
-    case "rows":
-      var textFunction = getRowSelectText;
-      break;
-    case "columns":
-      var textFunction = getColumnSelectText;
-      break;
-    case "_ebooks":
-      var textFunction = getEbooksText;
-      break;
-    case "every":
-      var textFunction = getEveryText;
-      break;
-    case "x + y":
-      var textFunction = getXYText;
-      break;
-    default:
-      Logger.log("I don't know what happened, but I can't figure out what sort of text to generate.");     
-  }
   
-  var tweet = textFunction();
+  var temp = getTweets(1);
+  var tweet = temp[0];
       
   if (typeof tweet != 'undefined' && 
       tweet.length > properties.min && 
