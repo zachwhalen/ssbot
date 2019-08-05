@@ -1,6 +1,6 @@
 /* 
 
-   A Spreadsheet-powered Twitter Bot Engine, version 0.5.3, August 2019
+   A Spreadsheet-powered Twitter Bot Engine, version 0.6.0, August 2019
    
    by Zach Whalen (@zachwhalen, zachwhalen.net)
    
