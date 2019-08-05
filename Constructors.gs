@@ -161,7 +161,6 @@ function getEbooksText(count) {
   return tweets;
 }
 
-
 function oldEveryText(count) {
 
   if (typeof count !== 'undefined') {
@@ -214,6 +213,43 @@ function getEveryText(count) {
       break; //Stop finding more records due to stop condition
     }
   }
+  return tweets;
+}
+
+function getScheduledText(count, preview) {
+  var p = PropertiesService.getScriptProperties().getProperties();
+  var tweets = new Array();
+  if (typeof count !== 'undefined') {
+    var quota = count;
+  } else {
+    var quota = 1;
+  }
+
+  var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
+  var lastRow = scheduledSheet.getLastRow();
+  var scheduledData = scheduledSheet.getRange("a" + 4 + ":c" + lastRow).getValues();
+
+  //Wipe out wrong "Actual Tweet Time"
+
+
+  //Sort tweets by time
+
+
+  //Find tweets to return
+  if (preview) {
+    var found = 0;
+    for (i = 0; i < lastRow; i++) {
+        if (found++ < quota) {
+          tweets.push(scheduledData[i][2]);
+        }
+      }
+  } else {
+    for (i = 0; i < lastRow; i++) {
+      if (found++ < quota) {
+        tweets.push(scheduledData[i][2]);
+      }
+  }
+}
   return tweets;
 }
 
@@ -427,8 +463,6 @@ function getXYText(count) {
   return tweets;
 }
 
-
-
 /*
  
  GENERATE TWEETS BY SELECTING ONE CELL FROM EACH COLUMN
@@ -515,7 +549,6 @@ function getColumnSelectText(count) {
  MAKE TWEETS BY SELECTING ONE CELL FROM EACH ROW
  
 */
-
 
 function getRowSelectText(count) {
 

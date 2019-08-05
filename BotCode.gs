@@ -98,8 +98,7 @@ function everyRotate() {
 
 }
 
-
-function getTweets(count) {
+function getTweets(count, preview) {
   var properties = PropertiesService.getScriptProperties().getProperties();
 
   switch (properties.constructor) {
@@ -118,16 +117,17 @@ function getTweets(count) {
     case "every":
       var textFunction = getEveryText;
       break;
+    case "scheduled":
+      var textFunction = getScheduledText;
+      break;
     case "x + y":
       var textFunction = getXYText;
       break;
     default:
       Logger.log("I don't know what happened, but I can't figure out what sort of text to generate.");
   }
-  return textFunction(count);
+  return textFunction(count, preview);
 }
-
-
 
 function preview() {
 
@@ -138,7 +138,7 @@ function preview() {
   previewSheet.getRange('b4:b20').setValue(" ");
   SpreadsheetApp.getActiveSpreadsheet().setActiveSheet(previewSheet);
 
-  var tweets = getTweets(16);
+  var tweets = getTweets(16, true);
 
   for (var p = 0; p < tweets.length; p++) {
     var offset = p + 5;
@@ -232,8 +232,6 @@ function clearTiming() {
   }
 
 }
-
-
 
 /*
 
@@ -339,7 +337,7 @@ function generateSingleTweet() {
 
   var properties = PropertiesService.getScriptProperties().getProperties();
 
-  var temp = getTweets(1);
+  var temp = getTweets(1, false);
   var tweet = temp[0];
 
   if (typeof tweet != 'undefined' &&
@@ -432,7 +430,6 @@ function getMediaIds(tweet) {
   return media.join(',');
 }
 
-
 /*
  * Do the actual sending of a single tweet.
  *
@@ -498,7 +495,6 @@ function doTweet(tweet) {
 
 }
 
-
 function msgPopUp(msg) {
   var content = '<div style="font-family: Verdana;font-size: 22px; text-align:left; width: 80%; margin: 0 auto;">' + msg + '</div>';
   var htmlOutput = HtmlService
@@ -510,12 +506,9 @@ function msgPopUp(msg) {
 
 }
 
-
 function onEdit(e) {
   updateSettings();
 }
-
-
 
 /*
 
