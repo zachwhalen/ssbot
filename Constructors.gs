@@ -226,11 +226,20 @@ function getScheduledText(count, preview) {
   }
 
   var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
-  var lastRow = scheduledSheet.getLastRow();
-  var scheduledData = scheduledSheet.getRange("a" + 4 + ":c" + lastRow).getValues();
+  var scheduledData = scheduledSheet.getRange("a" + 4 + ":c" + scheduledSheet.getLastRow()).getValues();
+  var lastRow = scheduledData.length;
 
   //Wipe out wrong "Actual Tweet Time"
-
+  var now = new Date();
+  for (i = 0; i < lastRow; i++) {
+    scheduledData[i].push(i);
+    if (scheduledData[i][0] > 0 &&
+        (scheduledData[i][0] < scheduledData[i][1] //Desired date is newer that Actual Date (most likely due to repeating desired date)
+        || scheduledData[i][0] > now)) {           //Actual date is in the future
+      scheduledData[i][0] = "";
+      scheduledSheet.getRange("a" + (i + 4)).setValue("");
+    }
+  }
 
   //Sort tweets by time
   scheduledData.sort(function(a,b){ return a[1] - b[1]; });
