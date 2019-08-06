@@ -239,6 +239,11 @@ function getScheduledText(count, preview) {
       scheduledData[i][0] = "";
       scheduledSheet.getRange("a" + (i + 4)).setValue("");
     }
+    if (scheduledData[i][1] < now) {
+      //Erase Tweet as it is for some time in the past
+      scheduledData[i][1] = "";
+      scheduledData[i][2] = "";
+    }
   }
 
   //Sort tweets by time
@@ -248,13 +253,13 @@ function getScheduledText(count, preview) {
   if (preview) {
     var found = 0;
     for (i = 0; i < lastRow; i++) {
-        if (found++ < quota) {
+        if (scheduledData[i][2] != "" && found++ < quota) {
           tweets.push(scheduledData[i][2]);
         }
       }
   } else {
     for (i = 0; i < lastRow; i++) {
-      if (found++ < quota) {
+      if (scheduledData[i][2] != "" && found++ < quota) {
         tweets.push(scheduledData[i][2]);
       }
   }
