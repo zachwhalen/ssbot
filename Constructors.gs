@@ -228,7 +228,8 @@ function getScheduledText(count, preview) {
   var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
   var scheduledData = scheduledSheet.getRange("a" + 4 + ":c" + scheduledSheet.getLastRow()).getValues();
   var lastRow = scheduledData.length;
-  var fudgeFactor = 15; //Number of minutes before and after now to consider equivalent to now.
+  var fudgeFactor = 15;         //Number of minutes before and after now to consider equivalent to now.
+  fudgeFactor += getTiming();   //Also add the time between runs to the fudge factor.
   var now = new Date();
   var beforeNow = new Date(now.getTime() - fudgeFactor*60000);
   var afterNow = new Date(now.getTime() + fudgeFactor*60000);
@@ -627,3 +628,43 @@ function getRowSelectText(count) {
   }
   return tweets
 } 
+
+function getTiming() {
+  var properties = PropertiesService.getScriptProperties().getProperties();
+  var timing = 0;
+  switch (properties.timing) {
+    case "12 hours":
+      timing = 12*60;
+      break;
+    case "8 hours":
+      timing = 8*60;
+      break;
+    case "6 hours":
+      timing = 6*60;
+      break;
+    case "4 hours":
+      timing = 4*60;
+      break;
+    case "2 hours":
+      timing = 2*60;
+      break;
+    case "1 hour":
+     timing = 1*60;
+      break;
+    case "30 minutes":
+      timing = 30;
+      break;
+    case "15 minutes":
+      timing = 15;
+      break;
+    case "10 minutes":
+      timing = 10;
+      break;
+    case "5 minutes":
+      timing = 5;
+      break;
+    default:
+      timing = 0;
+  }
+  return timing;
+}
