@@ -228,19 +228,21 @@ function getScheduledText(count, preview) {
   var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
   var scheduledData = scheduledSheet.getRange("a" + 4 + ":c" + scheduledSheet.getLastRow()).getValues();
   var lastRow = scheduledData.length;
+  var fudgeFactor = 15; //Number of minutes before and after now to consider equivalent to now.
+  var now = new Date();
+  var beforeNow = new Date(now.getTime() - fudgeFactor*60000);
+  var afterNow = new Date(now.getTime() + fudgeFactor*60000);
 
   //Wipe out wrong "Actual Tweet Time"
-  var now = new Date();
   for (i = 0; i < lastRow; i++) {
     scheduledData[i].push(i);
     if (scheduledData[i][0] > 0 &&
         (scheduledData[i][0] < scheduledData[i][1] //Desired date is newer that Actual Date (most likely due to repeating desired date)
-        || scheduledData[i][0] > now)) {           //Actual date is in the future
+        || scheduledData[i][0] > afterNow)) {     //Actual date is in the future
       scheduledData[i][0] = "";
       scheduledSheet.getRange("a" + (i + 4)).setValue("");
     }
-    if (scheduledData[i][1] < now) {
-      //Erase Tweet as it is for some time in the past
+    if (scheduledData[i][1] < beforeNow || scheduledData[i][0] > 0) {  //Erase tweets that are already sent or in the past
       scheduledData[i][1] = "";
       scheduledData[i][2] = "";
     }
@@ -250,8 +252,8 @@ function getScheduledText(count, preview) {
   scheduledData.sort(function(a,b){ return a[1] - b[1]; });
 
   //Find tweets to return
+  var found = 0;
   if (preview) {
-    var found = 0;
     for (i = 0; i < lastRow; i++) {
         if (scheduledData[i][2] != "" && found++ < quota) {
           tweets.push(scheduledData[i][2]);
@@ -259,7 +261,9 @@ function getScheduledText(count, preview) {
       }
   } else {
     for (i = 0; i < lastRow; i++) {
-      if (scheduledData[i][2] != "" && found++ < quota) {
+      if (scheduledData[i][2] != ""           //Tweet is not empty
+          && scheduledData[i][1] < afterNow   //Tweet is not to far in the future
+          && found++ < quota) {               //We don't have too many tweets already
         tweets.push(scheduledData[i][2]);
       }
   }
