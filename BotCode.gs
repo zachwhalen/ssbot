@@ -336,30 +336,37 @@ function authorizationRevoke() {
 function generateSingleTweet() {
 
   var properties = PropertiesService.getScriptProperties().getProperties();
-
-  var temp = getTweets(1, false);
-  var tweet = temp[0];
-
-  if (typeof tweet != 'undefined' &&
-    tweet.length > properties.min &&
-    !wordFilter(tweet) &&
-    !curfew()) {
-    if (properties.removeMentions == 'yes') {
-      tweet = tweet.replace(/@[a-zA-Z0-9_]+/g, '');
-    }
-    if (properties.removeHashes == 'yes') {
-      tweet = tweet.replace(/#[a-zA-Z0-9_]+/g, '');
-    }
-    while (tweet.match(/ {2}/g)) {
-      tweet = tweet.replace(/ {2}/, ' ');
-    }
-    doTweet(tweet);
+  
+  var temp;
+  if (properties.constructor == "scheduled") {
+    temp = getTweets(1000, false); //1,000 tweets will be the maximum number of scheduled tweets that can be sent in a single block of time
   } else {
-    Logger.log("Too short, or some other problem.");
-    Logger.log(tweet);
-    Logger.log("Wordfilter: " + wordFilter(tweet));
+    temp = getTweets(1, false);
   }
+  var tweet;
+  for (i = 0; i < temp.length; i++) {
+    tweet = temp[i];
 
+    if (typeof tweet != 'undefined' &&
+      tweet.length > properties.min &&
+      !wordFilter(tweet) &&
+      !curfew()) {
+      if (properties.removeMentions == 'yes') {
+        tweet = tweet.replace(/@[a-zA-Z0-9_]+/g, '');
+      }
+      if (properties.removeHashes == 'yes') {
+        tweet = tweet.replace(/#[a-zA-Z0-9_]+/g, '');
+      }
+      while (tweet.match(/ {2}/g)) {
+        tweet = tweet.replace(/ {2}/, ' ');
+      }
+      doTweet(tweet);
+    } else {
+      Logger.log("Too short, or some other problem.");
+      Logger.log(tweet);
+      Logger.log("Wordfilter: " + wordFilter(tweet));
+    }
+  }
 }
 
 function curfew() {
