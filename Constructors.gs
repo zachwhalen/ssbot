@@ -236,7 +236,7 @@ function getScheduledText(count, preview) {
 
   //Wipe out wrong "Actual Tweet Time"
   for (i = 0; i < lastRow; i++) {
-    scheduledData[i].push(i);
+    scheduledData[i].push(i + 4);
     if (scheduledData[i][0] > 0 &&
         (scheduledData[i][0] < scheduledData[i][1] //Desired date is newer that Actual Date (most likely due to repeating desired date)
         || scheduledData[i][0] > afterNow)) {     //Actual date is in the future
@@ -265,7 +265,7 @@ function getScheduledText(count, preview) {
       if (scheduledData[i][2] != ""           //Tweet is not empty
           && scheduledData[i][1] < afterNow   //Tweet is not to far in the future
           && found++ < quota) {               //We don't have too many tweets already
-        tweets.push(scheduledData[i][2]);
+        tweets.push([scheduledData[i][2], scheduledData[i][3]]);
       }
   }
 }

@@ -98,6 +98,11 @@ function everyRotate() {
 
 }
 
+function logScheduledTweet(created_at, rowID) {
+  var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
+  scheduledSheet.getRange("a" + rowID + ":a" + rowID).setValue(created_at);
+}
+
 function getTweets(count, preview) {
   var properties = PropertiesService.getScriptProperties().getProperties();
 
@@ -338,8 +343,11 @@ function generateSingleTweet() {
   var properties = PropertiesService.getScriptProperties().getProperties();
   
   var temp;
+  var tempID;
   if (properties.constructor == "scheduled") {
-    temp = getTweets(1000, false); //1,000 tweets will be the maximum number of scheduled tweets that can be sent in a single block of time
+    var tempArray = getTweets(1000, false); //1,000 tweets will be the maximum number of scheduled tweets that can be sent in a single block of time
+    temp = tempArray.map(function(value,index) { return value[0]; });
+    tempID = tempArray.map(function(value,index) { return value[1]; });
   } else {
     temp = getTweets(1, false);
   }
@@ -360,7 +368,7 @@ function generateSingleTweet() {
       while (tweet.match(/ {2}/g)) {
         tweet = tweet.replace(/ {2}/, ' ');
       }
-      doTweet(tweet);
+      doTweet(tweet, tempID[i]);
     } else {
       Logger.log("Too short, or some other problem.");
       Logger.log(tweet);
@@ -442,7 +450,7 @@ function getMediaIds(tweet) {
  *
 */
 
-function doTweet(tweet) {
+function doTweet(tweet, tweetID) {
   var properties = PropertiesService.getScriptProperties().getProperties();
 
 
@@ -485,6 +493,10 @@ function doTweet(tweet) {
 
     if (response.created_at && properties.constructor === 'every') {
       everyRotate();
+    }
+
+    if (response.created_at && properties.constructor === 'scheduled') {
+      logScheduledTweet(response.created_at, tweetID);
     }
 
     doLog(response, tweet, 'Success');
