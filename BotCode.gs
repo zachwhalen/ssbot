@@ -346,7 +346,7 @@ function generateSingleTweet() {
   var tempID;
   if (properties.constructor == "scheduled") {
     var tempArray = getTweets(1000, false); //1,000 tweets will be the maximum number of scheduled tweets that can be sent in a single block of time
-    if (typeof tempArray == 'undefined') {
+    if (typeof tempArray == 'undefined' || tempArray.length < 1) {
       doLog("Scheduled Tweet: There is nothing to Tweet now","","Nothing");
       Logger.log("Scheduled Tweet: Nothing to tweet in this time block");
       return;
