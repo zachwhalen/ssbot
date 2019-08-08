@@ -100,7 +100,7 @@ function everyRotate() {
 
 function logScheduledTweet(rowID) {
   var d = new Date();
-  var displayDate = Utilities.formatDate(d, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), "M/d/yyyy hh:mm a");
+  var displayDate = Utilities.formatDate(d, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), "yyyy-MM-dd hh:mm a");
   var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
   scheduledSheet.getRange("a" + rowID + ":a" + rowID).setValue(displayDate);
 }
