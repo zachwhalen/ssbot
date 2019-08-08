@@ -228,8 +228,10 @@ function getScheduledText(count, preview) {
   var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
   var scheduledData = scheduledSheet.getRange("a" + 4 + ":c" + scheduledSheet.getLastRow()).getValues();
   var lastRow = scheduledData.length;
-  var fudgeFactor = 15;         //Number of minutes before and after now to consider equivalent to now.
-  fudgeFactor += getTiming();   //Also add the time between runs to the fudge factor.
+  var fudgeFactor = getTiming();    //Number of minutes before and after now to consider equivalent to now.
+  if (fudgeFactor > 30) {
+    fudgeFactor = 15;               //If schduled run time is greater than 30 minutes assume Google will add 15 minutes of variablility.
+  }
   var now = new Date();
   var beforeNow = new Date(now.getTime() - fudgeFactor*60000);
   var afterNow = new Date(now.getTime() + fudgeFactor*60000);
@@ -662,6 +664,9 @@ function getTiming() {
       break;
     case "5 minutes":
       timing = 5;
+      break;
+    case "1 minute":
+      timing = 1;
       break;
     default:
       timing = 0;
