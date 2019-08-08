@@ -224,6 +224,12 @@ function setTiming() {
         .everyMinutes(5)
         .create();
       break;
+    case "1 minute":
+      ScriptApp.newTrigger("generateSingleTweet")
+        .timeBased()
+        .everyMinutes(1)
+        .create();
+      break;
     default:
       Logger.log("I couldn't figure out what interval to set.");
   }
