@@ -249,6 +249,9 @@ function getScheduledText(count, preview) {
       scheduledData[i][1] = "";
       scheduledData[i][2] = "";
     }
+    if (scheduledData[i][0] == "next-->") { //Erase Next Pointer as it will be reset later
+      scheduledData[i][0] = "";
+    }
   }
 
   //Sort tweets by time
@@ -256,21 +259,24 @@ function getScheduledText(count, preview) {
 
   //Find tweets to return
   var found = 0;
-  if (preview) {
-    for (i = 0; i < lastRow; i++) {
-        if (scheduledData[i][2] != "" && found++ < quota) {
-          tweets.push(scheduledData[i][2]);
+  for (i = 0; i < lastRow; i++) {
+    if (scheduledData[i][2] != ""                                 //Tweet is not empty
+        && found++ < quota) {                                     //We don't have too many tweets already
+      if (preview) {
+        tweets.push(scheduledData[i][2]);                         //Preview only gets the tweets
+        if (found == 1) {                                         //Previewing so first result is next to be tweeted.
+          scheduledSheet.getRange("a" + scheduledData[i][3] + 
+              ":a" + scheduledData[i][3]).setValue("next-->");
         }
+      } else if (scheduledData[i][1] < afterNow) {                //Tweet is not to far in the future
+        tweets.push([scheduledData[i][2], scheduledData[i][3]]);  //Actual tweeting gets tweet and row number so actual tweet time can be set.
+        scheduledSheet.getRange("a" + scheduledData[i][3] +       //Mark all tweets about to be tweeted as next. Actually tweeting them will overwrite this.
+            ":a" + scheduledData[i][3]).setValue("next-->");
+      } else if (found = quota + 1) {                             //When actually tweeting next tweet will be one past quota.
+        scheduledSheet.getRange("a" + scheduledData[i][3] + ":a" + scheduledData[i][3]).setValue("next-->");
       }
-  } else {
-    for (i = 0; i < lastRow; i++) {
-      if (scheduledData[i][2] != ""           //Tweet is not empty
-          && scheduledData[i][1] < afterNow   //Tweet is not to far in the future
-          && found++ < quota) {               //We don't have too many tweets already
-        tweets.push([scheduledData[i][2], scheduledData[i][3]]);
-      }
+    }
   }
-}
   return tweets;
 }
 
