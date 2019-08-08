@@ -251,6 +251,7 @@ function getScheduledText(count, preview) {
     }
     if (scheduledData[i][0] == "next-->") { //Erase Next Pointer as it will be reset later
       scheduledData[i][0] = "";
+      scheduledSheet.getRange("a" + scheduledData[i][3] + ":a" + scheduledData[i][3]).setValue("");
     }
   }
 
@@ -273,7 +274,8 @@ function getScheduledText(count, preview) {
         scheduledSheet.getRange("a" + scheduledData[i][3] +       //Mark all tweets about to be tweeted as next. Actually tweeting them will overwrite this.
             ":a" + scheduledData[i][3]).setValue("next-->");
       } else if (found = quota + 1) {                             //When actually tweeting next tweet will be one past quota.
-        scheduledSheet.getRange("a" + scheduledData[i][3] + ":a" + scheduledData[i][3]).setValue("next-->");
+        scheduledSheet.getRange("a" + scheduledData[i][3] + 
+        ":a" + scheduledData[i][3]).setValue("next-->");
       }
     }
   }
