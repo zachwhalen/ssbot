@@ -581,7 +581,7 @@ function doLog(msg, tweet, status) {
 
   var d = new Date();
 
-  var currentTime = d.toLocaleTimeString();
+  var currentTime = d.toLocaleString();
 
   var ls = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("log");
   // var logVals = new Array();
