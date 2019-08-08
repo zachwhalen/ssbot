@@ -98,9 +98,11 @@ function everyRotate() {
 
 }
 
-function logScheduledTweet(created_at, rowID) {
+function logScheduledTweet(rowID) {
+  var d = new Date();
+  var displayDate = Utilities.formatDate(d, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), "M/d/yyyy hh:mm a");
   var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
-  scheduledSheet.getRange("a" + rowID + ":a" + rowID).setValue(created_at);
+  scheduledSheet.getRange("a" + rowID + ":a" + rowID).setValue(displayDate);
 }
 
 function getTweets(count, preview) {
@@ -501,7 +503,7 @@ function doTweet(tweet, tweetID) {
     }
 
     if (response.created_at && properties.constructor === 'scheduled') {
-      logScheduledTweet(response.created_at, tweetID);
+      logScheduledTweet(tweetID);
     }
 
     doLog(response, tweet, 'Success');
