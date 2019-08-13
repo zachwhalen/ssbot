@@ -228,10 +228,10 @@ function getScheduledText(count, preview) {
   var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
   var scheduledData = scheduledSheet.getRange("a" + 4 + ":c" + scheduledSheet.getLastRow()).getValues();
   var lastRow = scheduledData.length;
-  var fudgeFactor = getTiming();    //Number of minutes before and after now to consider equivalent to now.
+  var fudgeFactor = getTiming();    //Number of minutes after now to consider equivalent to now.
 
   var now = new Date();
-  var beforeNow = new Date(now.getTime() - fudgeFactor*60000);
+  var beforeNow = new Date(p.lastRunTime);
   var afterNow = new Date(now.getTime() + fudgeFactor*60000);
 
   //Wipe out wrong "Actual Tweet Time"
@@ -677,5 +677,6 @@ function getTiming() {
     default:
       timing = 0;
   }
+  timing = (timing/2.0) + (5/60.0); //Half for window size. Plus 5 seconds to account for 1 second variation with buffer.
   return timing;
 }

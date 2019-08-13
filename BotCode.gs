@@ -74,6 +74,11 @@ function updateSettings() {
   var callbackURL = "https://script.google.com/macros/d/" + ScriptApp.getScriptId() + "/usercallback";
   SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Setup").getRange('b17').setValue(callbackURL);
 
+  var lastRun = scriptProperties.getProperty('lastRunTime');
+  if (!lastRun) {
+    var now = new Date();
+    scriptProperties.setProperty('lastRunTime', now.toJSON());
+  }
 
 }
 
