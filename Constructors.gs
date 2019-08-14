@@ -678,7 +678,7 @@ function getTiming() {
       timing = 1;
       break;
     default:
-      timing = 0;
+      timing = 60;
   }
   timing = (timing/2.0) + (5/60.0); //Half for window size. Plus 5 seconds to account for 1 second variation with buffer.
   return timing;
