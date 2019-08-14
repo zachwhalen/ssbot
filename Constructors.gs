@@ -238,16 +238,19 @@ function getScheduledText(count, preview) {
   for (i = 0; i < lastRow; i++) {
     scheduledData[i].push(i + 4);
     if (scheduledData[i][0] > 0 &&
-        (scheduledData[i][0] < scheduledData[i][1] //Desired date is newer that Actual Date (most likely due to repeating desired date)
-        || scheduledData[i][0] > afterNow)) {     //Actual date is in the future
+        (scheduledData[i][0] < scheduledData[i][1]  //Desired date is newer that Actual Date (most likely due to repeating desired date)
+        || scheduledData[i][0] > afterNow)) {       //Actual date is in the future
       scheduledData[i][0] = "";
       scheduledSheet.getRange("a" + (i + 4)).setValue("");
     }
-    if (scheduledData[i][1] < beforeNow || scheduledData[i][0] > 0) {  //Erase tweets that are already sent or in the past
+    if (scheduledData[i][1] < beforeNow             //Erase tweets that are in the past
+        || scheduledData[i][0] > 0                  //Erase tweets that are already sent
+        || scheduledData[i][0] == "Error") {        //Erase Error Tweets
+      scheduledData[i][0] = "";
       scheduledData[i][1] = "";
       scheduledData[i][2] = "";
     }
-    if (scheduledData[i][0] == "next-->") { //Erase Next Pointer as it will be reset later
+    if (scheduledData[i][0] == "next-->") {         //Erase Next Pointer as it will be reset later
       scheduledData[i][0] = "";
       scheduledSheet.getRange("a" + scheduledData[i][3] + ":a" + scheduledData[i][3]).setValue("");
     }

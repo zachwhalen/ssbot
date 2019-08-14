@@ -103,11 +103,16 @@ function everyRotate() {
 
 }
 
-function logScheduledTweet(rowID) {
-  var d = new Date();
-  var displayDate = Utilities.formatDate(d, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), "yyyy-MM-dd hh:mm a");
+function logScheduledTweet(rowID, success) {
+  var display = "";
+  if (success) {
+    var d = new Date();
+    var display = Utilities.formatDate(d, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), "yyyy-MM-dd hh:mm a");
+  } else {
+    display = "Error";
+  }
   var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
-  scheduledSheet.getRange("a" + rowID + ":a" + rowID).setValue(displayDate);
+  scheduledSheet.getRange("a" + rowID + ":a" + rowID).setValue(display);
 }
 
 function getTweets(count, preview) {
@@ -514,7 +519,7 @@ function doTweet(tweet, tweetID) {
     }
 
     if (response.created_at && properties.constructor === 'scheduled') {
-      logScheduledTweet(tweetID);
+      logScheduledTweet(tweetID, true);
     }
 
     doLog(response, tweet, 'Success');
@@ -523,10 +528,11 @@ function doTweet(tweet, tweetID) {
   catch (e) {
     Logger.log(e.toString());
     doLog(e, 'n/a', 'Error');
-    if (properties.constructor === 'every') {
-      if (properties.everyFail === 'skip') {
-        everyRotate();
-      }
+    if (properties.constructor === 'every' && properties.everyFail === 'skip') {
+      everyRotate();
+    }
+    if (properties.constructor === 'scheduled' && properties.everyFail === 'skip') {
+      logScheduledTweet(tweetID, false);
     }
   }
 
