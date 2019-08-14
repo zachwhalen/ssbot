@@ -257,7 +257,7 @@ function getScheduledText(count, preview) {
   }
 
   //Sort tweets by time
-  scheduledData.sort(function(a,b){ return a[1] - b[1]; });
+  scheduledData.sort(function(a,b){ return (a[1] == ""?1:(b[1] == ""?-1:a[1] - b[1])); });
 
   //Find tweets to return
   var found = 0;
