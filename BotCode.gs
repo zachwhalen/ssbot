@@ -411,7 +411,7 @@ function curfew() {
   var quietBegin = properties.quietStart;
   var quietEnd = properties.quietEnd;
 
-  if (quietBegin == quietEnd || properties.constructor == "scheduled") {
+  if (quietBegin == quietEnd) {
     return false;
   }
 
