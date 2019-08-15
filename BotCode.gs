@@ -80,6 +80,12 @@ function updateSettings() {
     scriptProperties.setProperty('lastRunTime', now.toJSON());
   }
 
+  if (ss[0].toString() === 'scheduled' && ss[1].toString() == "auto") { //Both Constructor & Timing must match.
+    scriptProperties.setProperty('isAuto', true);
+  } else {
+    scriptProperties.setProperty('isAuto', false);
+  }
+
 }
 
 function everyRotate() {
