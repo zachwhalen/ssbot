@@ -56,7 +56,7 @@ function updateSettings() {
 
   scriptProperties.
     setProperty('constructor', ss[0].toString()).
-    setProperty('timing', ss[1].toString()).
+    setProperty('timing', convertTimingtoMinutes(ss[1].toString())).
     setProperty('min', ss[2].toString()).
     setProperty('max', ss[3].toString()).
     setProperty('img', ss[6].toString()).
@@ -78,6 +78,12 @@ function updateSettings() {
   if (!lastRun) {
     var now = new Date();
     scriptProperties.setProperty('lastRunTime', now.toJSON());
+  }
+
+  if (ss[0].toString() === 'scheduled' && ss[1].toString() == "auto") { //Both Constructor & Timing must match.
+    scriptProperties.setProperty('isAuto', true);
+  } else {
+    scriptProperties.setProperty('isAuto', false);
   }
 
 }
@@ -165,87 +171,77 @@ function preview() {
 
 }
 
+function convertTimingtoMinutes(originalTiming) {
+  var timing = 0;
+  switch (originalTiming) {
+    case "12 hours":
+      timing = 12*60;
+      break;
+    case "8 hours":
+      timing = 8*60;
+      break;
+    case "6 hours":
+      timing = 6*60;
+      break;
+    case "4 hours":
+      timing = 4*60;
+      break;
+    case "2 hours":
+      timing = 2*60;
+      break;
+    case "1 hour":
+     timing = 1*60;
+      break;
+    case "30 minutes":
+      timing = 30;
+      break;
+    case "15 minutes":
+      timing = 15;
+      break;
+    case "10 minutes":
+      timing = 10;
+      break;
+    case "5 minutes":
+      timing = 5;
+      break;
+    case "1 minute":
+      timing = 1;
+      break;
+    default:
+      timing = 60;
+  }
+  return timing;
+}
+
 function setTiming() {
 
   var properties = PropertiesService.getScriptProperties().getProperties();
-
+  var timing = properties.timing;
 
   // clear any existing triggers
   clearTiming();
 
-  switch (properties.timing) {
-    case "12 hours":
-      var trigger = ScriptApp.newTrigger("generateSingleTweet")
+  var trigger;
+  if (timing >= 60) {
+    timing /= 60;
+    trigger = ScriptApp.newTrigger("generateSingleTweet")
         .timeBased()
-        .everyHours(12)
+        .everyHours(timing)
         .create();
-      break;
-    case "8 hours":
-      ScriptApp.newTrigger("generateSingleTweet")
+    doLog("Scheduled Posting set to every " + timing + (timing > 1?" Hours.":" Hour."),"","Set Timing");
+  } else if (timing > 0) {
+    trigger = ScriptApp.newTrigger("generateSingleTweet")
         .timeBased()
-        .everyHours(8)
+        .everyMinutes(timing)
         .create();
-      break;
-    case "6 hours":
-      ScriptApp.newTrigger("generateSingleTweet")
-        .timeBased()
-        .everyHours(6)
-        .create();
-      break;
-    case "4 hours":
-      ScriptApp.newTrigger("generateSingleTweet")
-        .timeBased()
-        .everyHours(4)
-        .create();
-      break;
-    case "2 hours":
-      ScriptApp.newTrigger("generateSingleTweet")
-        .timeBased()
-        .everyHours(2)
-        .create();
-      break;
-    case "1 hour":
-      ScriptApp.newTrigger("generateSingleTweet")
+    doLog("Scheduled Posting set to every " + timing + (timing > 1?" Minutes.":" Minute."),"","Set Timing");
+  } else {
+    trigger = ScriptApp.newTrigger("generateSingleTweet")
         .timeBased()
         .everyHours(1)
         .create();
-      break;
-    case "30 minutes":
-      ScriptApp.newTrigger("generateSingleTweet")
-        .timeBased()
-        .everyMinutes(30)
-        .create();
-      break;
-    case "15 minutes":
-      ScriptApp.newTrigger("generateSingleTweet")
-        .timeBased()
-        .everyMinutes(15)
-        .create();
-      break;
-    case "10 minutes":
-      ScriptApp.newTrigger("generateSingleTweet")
-        .timeBased()
-        .everyMinutes(10)
-        .create();
-      break;
-    case "5 minutes":
-      ScriptApp.newTrigger("generateSingleTweet")
-        .timeBased()
-        .everyMinutes(5)
-        .create();
-      break;
-    case "1 minute":
-      ScriptApp.newTrigger("generateSingleTweet")
-        .timeBased()
-        .everyMinutes(1)
-        .create();
-      break;
-    default:
-      ScriptApp.newTrigger("generateSingleTweet")
-          .timeBased()
-          .everyHours(1)
-          .create();
-      Logger.log("I couldn't find an interval to set so I assumed 1 hour.");
+    Logger.log("I couldn't find an interval to set so I assumed 1 hour.");
+    doLog("Scheduled Posting set to every 1 Hour. (Default)","","Set Timing");
   }
 
   Logger.log(trigger);
@@ -257,6 +253,8 @@ function clearTiming() {
   for (var i = 0; i < triggers.length; i++) {
     ScriptApp.deleteTrigger(triggers[i]);
   }
+  Logger.log("Scheduled Posting turned off.");
+  doLog("Scheduled Posting turned off.","","Set Timing");
 
 }
 
