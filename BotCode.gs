@@ -219,7 +219,7 @@ function setTiming() {
   var timing = properties.timing;
 
   // clear any existing triggers
-  clearTiming();
+  clearTiming(false);
 
   var trigger;
   if (timing >= 60) {
@@ -247,15 +247,17 @@ function setTiming() {
   Logger.log(trigger);
 }
 
-function clearTiming() {
+function clearTiming(log) {
+  log = typeof log !== 'undefined' ? log : true;   //Set default log value to true
   // clear any existing triggers
   var triggers = ScriptApp.getProjectTriggers();
   for (var i = 0; i < triggers.length; i++) {
     ScriptApp.deleteTrigger(triggers[i]);
   }
-  Logger.log("Scheduled Posting turned off.");
-  doLog("Scheduled Posting turned off.","","Set Timing");
-
+  if (log) {
+    Logger.log("Scheduled Posting turned off.");
+    doLog("Scheduled Posting turned off.","","Set Timing");
+  }
 }
 
 /*
