@@ -86,6 +86,12 @@ function updateSettings() {
     scriptProperties.setProperty('isAuto', false);
   }
 
+  if (ScriptApp.getProjectTriggers().length > 0) {
+    scriptProperties.setProperty('isScheduledPosting', true);
+  } else {
+    scriptProperties.setProperty('isScheduledPosting', false);
+  }
+
 }
 
 function everyRotate() {
@@ -216,6 +222,7 @@ function convertTimingtoMinutes(originalTiming) {
 function setTiming() {
 
   var properties = PropertiesService.getScriptProperties().getProperties();
+  var scriptProperties = PropertiesService.getScriptProperties();
   var timing = properties.timing;
 
   // clear any existing triggers
@@ -243,12 +250,13 @@ function setTiming() {
     Logger.log("I couldn't find an interval to set so I assumed 1 hour.");
     doLog("Scheduled Posting set to every 1 Hour. (Default)","","Set Timing");
   }
-
+  scriptProperties.setProperty('isScheduledPosting', true);
   Logger.log(trigger);
 }
 
 function clearTiming(log) {
   log = typeof log !== 'undefined' ? log : true;   //Set default log value to true
+  var scriptProperties = PropertiesService.getScriptProperties();
   // clear any existing triggers
   var triggers = ScriptApp.getProjectTriggers();
   for (var i = 0; i < triggers.length; i++) {
@@ -258,6 +266,7 @@ function clearTiming(log) {
     Logger.log("Scheduled Posting turned off.");
     doLog("Scheduled Posting turned off.","","Set Timing");
   }
+  scriptProperties.setProperty('isScheduledPosting', false);
 }
 
 /*
