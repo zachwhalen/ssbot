@@ -228,7 +228,12 @@ function getScheduledText(count, preview) {
   var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
   var scheduledData = scheduledSheet.getRange("a" + 4 + ":c" + scheduledSheet.getLastRow()).getValues();
   var lastRow = scheduledData.length;
-  var afterFudgeFactor = ((p.timing/2.0) + (5/60.0))*60000;        //Half for window size. Plus 5 seconds to account for 1 second variation with buffer.
+  var afterFudgeFactor;
+  if (p.isAuto) {
+    afterFudgeFactor = (35/60.0)*60000;                     //When on "auto schedule" tweets will not be posted more 30 Seconds before scheduled time.
+  } else {
+    afterFudgeFactor = ((p.timing/2.0) + (5/60.0))*60000;   //Half for window size. Plus 5 seconds to account for 1 second variation with buffer.
+  }
 
   var now = new Date();
   var beforeNow = new Date(p.lastRunTime);
