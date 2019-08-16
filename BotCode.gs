@@ -54,6 +54,12 @@ function updateSettings() {
   var ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings").getRange("b4:b15").getValues();
   var scriptProperties = PropertiesService.getScriptProperties();
 
+  if (ss[0].toString() === 'scheduled' && ss[1].toString() == "auto") { //Both Constructor & Timing must match.
+    scriptProperties.setProperty('isAutoTiming', true);
+  } else {
+    scriptProperties.setProperty('isAutoTiming', false);
+  }
+
   scriptProperties.
     setProperty('constructor', ss[0].toString()).
     setProperty('timing', convertTimingtoMinutes(ss[1].toString())).
@@ -78,12 +84,6 @@ function updateSettings() {
   if (!lastRun) {
     var now = new Date();
     scriptProperties.setProperty('lastRunTime', now.toJSON());
-  }
-
-  if (ss[0].toString() === 'scheduled' && ss[1].toString() == "auto") { //Both Constructor & Timing must match.
-    scriptProperties.setProperty('isAuto', true);
-  } else {
-    scriptProperties.setProperty('isAuto', false);
   }
 
   if (ScriptApp.getProjectTriggers().length > 0) {
@@ -219,11 +219,44 @@ function convertTimingtoMinutes(originalTiming) {
   return timing;
 }
 
-function setTiming() {
+function setTiming(nextPostTime) {
 
   var properties = PropertiesService.getScriptProperties().getProperties();
   var scriptProperties = PropertiesService.getScriptProperties();
   var timing = properties.timing;
+
+  if (properties.isAutoTiming) {                      //We are supposed to self adjust the timing schedule.
+    if (nextPostTime) {                               //We know when the next run needs to be.
+      var now = new Date();
+      var diffMs = (nextPostTime - now);              // milliseconds between now & next post time
+      var minutesTillNextPostTime = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
+      if (minutesTillNextPostTime > (12*60)) {
+        timing = 12*60;
+      } else if (minutesTillNextPostTime > (8*60)) {
+        timing = 8*60;
+      } else if (minutesTillNextPostTime > (6*60)) {
+        timing = 6*60;
+      } else if (minutesTillNextPostTime > (4*60)) {
+        timing = 4*60;
+      } else if (minutesTillNextPostTime > (2*60)) {
+        timing = 2*60;
+      } else if (minutesTillNextPostTime > (1*60)) {
+        timing = 1*60;
+      } else if (minutesTillNextPostTime > 30) {
+        timing = 30;
+      } else if (minutesTillNextPostTime > 15) {
+        timing = 15;
+      } else if (minutesTillNextPostTime > 10) {
+        timing = 10;
+      } else if (minutesTillNextPostTime > 5) {
+        timing = 5;
+      } else {
+        timing = 1;
+      }
+    } else {
+      timing = 1; //Since we have no idea when the next scheduled post should be assume it needs to be immediately.
+    }
+  }
 
   // clear any existing triggers
   clearTiming(false);
@@ -255,7 +288,7 @@ function setTiming() {
 }
 
 function clearTiming(log) {
-  log = typeof log !== 'undefined' ? log : true;   //Set default log value to true
+  log = (typeof log !== 'undefined' ? log : true);   //Set default log value to true
   var scriptProperties = PropertiesService.getScriptProperties();
   // clear any existing triggers
   var triggers = ScriptApp.getProjectTriggers();

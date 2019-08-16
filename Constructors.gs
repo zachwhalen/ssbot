@@ -266,22 +266,35 @@ function getScheduledText(count, preview) {
 
   //Find tweets to return
   var found = 0;
+  var foundPreview = false;
   for (i = 0; i < lastRow; i++) {
-    if (scheduledData[i][2] != ""                                 //Tweet is not empty
-        && found++ < quota) {                                     //We don't have too many tweets already
-      if (preview) {
-        tweets.push(scheduledData[i][2]);                         //Preview only gets the tweets
-        if (found == 1) {                                         //Previewing so first result is next to be tweeted.
-          scheduledSheet.getRange("a" + scheduledData[i][3] + 
+    if (scheduledData[i][2] != "") {                                //Tweet is not empty
+      if (found++ < quota) {                                        //We don't have too many tweets already
+        if (preview) {
+          tweets.push(scheduledData[i][2]);                         //Preview gets the tweets only. (No row number)
+          if (!foundPreview) {                                      //Previewing so first result is also next to be tweeted.
+            scheduledSheet.getRange("a" + scheduledData[i][3] + 
+                ":a" + scheduledData[i][3]).setValue("next-->");
+            foundPreview = true;
+          }
+        } else if (scheduledData[i][1] < afterNow) {                //Tweet is not to far in the future
+          tweets.push([scheduledData[i][2], scheduledData[i][3]]);  //Not previewing so also send row number that way "Actual Tweet Time" can be set.
+          scheduledSheet.getRange("a" + scheduledData[i][3] +       //Mark all tweets about to be tweeted as next. Actually tweeting them will overwrite this.
               ":a" + scheduledData[i][3]).setValue("next-->");
+        } else if (!foundPreview) {                                 //Not previewing, tweet is in the future, and next marker not set 
+          scheduledSheet.getRange("a" + scheduledData[i][3] + 
+          ":a" + scheduledData[i][3]).setValue("next-->");
+          foundPreview = true
+          if (found == 1                                            //This is the first found tweet and it is in the future
+              && p.isAutoTiming                                     //Auto updating timing is turned on
+              && p.isScheduledPosting) {                            //Currently in unattended posting mode.
+            setTiming(scheduledData[i][1]);                         //Since there was nothing to tweet in this time block update timing frequency.
+          }
         }
-      } else if (scheduledData[i][1] < afterNow) {                //Tweet is not to far in the future
-        tweets.push([scheduledData[i][2], scheduledData[i][3]]);  //Actual tweeting gets tweet and row number so actual tweet time can be set.
-        scheduledSheet.getRange("a" + scheduledData[i][3] +       //Mark all tweets about to be tweeted as next. Actually tweeting them will overwrite this.
-            ":a" + scheduledData[i][3]).setValue("next-->");
-      } else if (found = quota + 1) {                             //When actually tweeting next tweet will be one past quota.
-        scheduledSheet.getRange("a" + scheduledData[i][3] + 
-        ":a" + scheduledData[i][3]).setValue("next-->");
+      } else if (!foundPreview) {                                   //Next tweet is after quota filled up.
+          scheduledSheet.getRange("a" + scheduledData[i][3] + 
+          ":a" + scheduledData[i][3]).setValue("next-->");
+          foundPreview = true;
       }
     }
   }
