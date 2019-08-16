@@ -229,7 +229,7 @@ function getScheduledText(count, preview) {
   var scheduledData = scheduledSheet.getRange("a" + 4 + ":c" + scheduledSheet.getLastRow()).getValues();
   var lastRow = scheduledData.length;
   var afterFudgeFactor;
-  if (p.isAuto) {
+  if (p.isAutoTiming) {
     afterFudgeFactor = (35/60.0)*60000;                     //When on "auto schedule" tweets will not be posted more 30 Seconds before scheduled time.
   } else {
     afterFudgeFactor = ((p.timing/2.0) + (5/60.0))*60000;   //Half for window size. Plus 5 seconds to account for 1 second variation with buffer.
