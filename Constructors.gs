@@ -285,8 +285,7 @@ function getScheduledText(count, preview) {
           scheduledSheet.getRange("a" + scheduledData[i][3] + 
           ":a" + scheduledData[i][3]).setValue("next-->");
           foundPreview = true;
-          if (found == 1                                            //This is the first found tweet and it is in the future
-              && p.isAutoTiming == "true"                           //Auto updating timing is turned on
+          if (p.isAutoTiming == "true"                              //Auto updating timing is turned on
               && p.isScheduledPosting == "true") {                  //Currently in unattended posting mode.
             setTiming(scheduledData[i][1]);                         //Since there was nothing to tweet in this time block update timing frequency.
           }
@@ -295,6 +294,10 @@ function getScheduledText(count, preview) {
           scheduledSheet.getRange("a" + scheduledData[i][3] + 
           ":a" + scheduledData[i][3]).setValue("next-->");
           foundPreview = true;
+          if (p.isAutoTiming == "true"                              //Auto updating timing is turned on
+            && p.isScheduledPosting == "true") {                    //Currently in unattended posting mode.
+          setTiming(scheduledData[i][1]);                           //We tweeted but to be safe we still need to update the timing frequency.
+        }
       }
     }
   }
