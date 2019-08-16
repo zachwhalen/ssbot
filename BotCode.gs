@@ -256,34 +256,37 @@ function setTiming(nextPostTime) {
     }
   }
 
-  // clear any existing triggers
-  clearTiming(false);
+  if (properties.isScheduledPosting != "true"           //If not currently auto posting
+      || (properties.timing != timing && timing > 1)) { //Otherwise Only update timings if they have changed or if they are at one minute.
+    // clear any existing triggers
+    clearTiming(false);
 
-  var trigger;
-  if (timing >= 60) {
-    timing /= 60;
-    trigger = ScriptApp.newTrigger("generateSingleTweet")
-        .timeBased()
-        .everyHours(timing)
-        .create();
-    doLog("Scheduled Posting set to every " + timing + (timing > 1?" Hours.":" Hour."),"","Set Timing");
-  } else if (timing > 0) {
-    trigger = ScriptApp.newTrigger("generateSingleTweet")
-        .timeBased()
-        .everyMinutes(timing)
-        .create();
-    doLog("Scheduled Posting set to every " + timing + (timing > 1?" Minutes.":" Minute."),"","Set Timing");
-  } else {
-    trigger = ScriptApp.newTrigger("generateSingleTweet")
-        .timeBased()
-        .everyHours(1)
-        .create();
-    Logger.log("I couldn't find an interval to set so I assumed 1 hour.");
-    doLog("Scheduled Posting set to every 1 Hour. (Default)","","Set Timing");
+    var trigger;
+    if (timing >= 60) {
+      timing /= 60;
+      trigger = ScriptApp.newTrigger("generateSingleTweet")
+          .timeBased()
+          .everyHours(timing)
+          .create();
+      doLog("Scheduled Posting set to every " + timing + (timing > 1?" Hours.":" Hour."),"","Set Timing");
+    } else if (timing > 0) {
+      trigger = ScriptApp.newTrigger("generateSingleTweet")
+          .timeBased()
+          .everyMinutes(timing)
+          .create();
+      doLog("Scheduled Posting set to every " + timing + (timing > 1?" Minutes.":" Minute."),"","Set Timing");
+    } else {
+      trigger = ScriptApp.newTrigger("generateSingleTweet")
+          .timeBased()
+          .everyHours(1)
+          .create();
+      Logger.log("I couldn't find an interval to set so I assumed 1 hour.");
+      doLog("Scheduled Posting set to every 1 Hour. (Default)","","Set Timing");
+    }
+    scriptProperties.setProperty('isScheduledPosting', true);
+    scriptProperties.setProperty('timing', timing).
+    Logger.log(trigger);
   }
-  scriptProperties.setProperty('isScheduledPosting', true);
-  scriptProperties.setProperty('timing', timing).
-  Logger.log(trigger);
 }
 
 function clearTiming(log) {
