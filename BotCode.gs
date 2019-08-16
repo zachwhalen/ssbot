@@ -227,9 +227,7 @@ function setTiming(nextPostTime) {
 
   if (properties.isAutoTiming == "true") {            //We are supposed to self adjust the timing schedule.
     if (nextPostTime) {                               //We know when the next run needs to be.
-      var now = new Date();
-      var diffMs = (nextPostTime - now);              // milliseconds between now & next post time
-      var minutesTillNextPostTime = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
+      var minutesTillNextPostTime = (nextPostTime - (new Date())) / 60000;
       if (minutesTillNextPostTime > (12*60)) {
         timing = 12*60;
       } else if (minutesTillNextPostTime > (8*60)) {
