@@ -284,10 +284,10 @@ function getScheduledText(count, preview) {
         } else if (!foundPreview) {                                 //Not previewing, tweet is in the future, and next marker not set 
           scheduledSheet.getRange("a" + scheduledData[i][3] + 
           ":a" + scheduledData[i][3]).setValue("next-->");
-          foundPreview = true
+          foundPreview = true;
           if (found == 1                                            //This is the first found tweet and it is in the future
-              && p.isAutoTiming                                     //Auto updating timing is turned on
-              && p.isScheduledPosting) {                            //Currently in unattended posting mode.
+              && p.isAutoTiming == "true"                           //Auto updating timing is turned on
+              && p.isScheduledPosting == "true") {                  //Currently in unattended posting mode.
             setTiming(scheduledData[i][1]);                         //Since there was nothing to tweet in this time block update timing frequency.
           }
         }

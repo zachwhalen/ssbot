@@ -225,7 +225,7 @@ function setTiming(nextPostTime) {
   var scriptProperties = PropertiesService.getScriptProperties();
   var timing = properties.timing;
 
-  if (properties.isAutoTiming) {                      //We are supposed to self adjust the timing schedule.
+  if (properties.isAutoTiming == "true") {            //We are supposed to self adjust the timing schedule.
     if (nextPostTime) {                               //We know when the next run needs to be.
       var now = new Date();
       var diffMs = (nextPostTime - now);              // milliseconds between now & next post time
