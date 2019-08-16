@@ -284,10 +284,10 @@ function setTiming(nextPostTime) {
       doLog("Scheduled Posting set to every 1 Hour. (Default)","","Set Timing");
     }
     scriptProperties.setProperty('isScheduledPosting', true);
-    scriptProperties.setProperty('timing', timing).
+    scriptProperties.setProperty('timing', timing);
     Logger.log(trigger);
   }
-}
+} 
 
 function clearTiming(log) {
   log = (typeof log !== 'undefined' ? log : true);   //Set default log value to true
