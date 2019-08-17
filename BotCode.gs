@@ -257,7 +257,8 @@ function setTiming(nextPostTime) {
   }
 
   if (properties.isScheduledPosting != "true"           //If not currently auto posting
-      || (properties.timing != timing && timing > 1)) { //Otherwise Only update timings if they have changed or if they are at one minute.
+      || properties.timing != timing                    //Or if desired timing is different from current timing
+      || timing == 1) {                                 //Or if desired timing is at one minute. (This adds some randomness within minute for actual post time.)
     // clear any existing triggers
     clearTiming(false);
 
