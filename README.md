@@ -13,9 +13,11 @@ The `.gs` files in this repository are the underlying GAS code for the dev versi
 To use one of these spreadsheets, use "File -> Make a Copy..." to save it to your Google Drive.
 
 ### Current
-<a href="https://docs.google.com/spreadsheets/d/1qfHjpevccgUXLwIgxlNKBejvcWeyqTP5Fj6vfBuBwuI/edit?usp=sharing">SSBot v0.5.2</a>
+<a href="https://docs.google.com/spreadsheets/d/173sGZO5XXeH4FytakLEfmBMrUNUQPpQ4VZALKma_igM/edit?usp=sharing">SSBot v0.5.3</a>
 
 ### Legacy
+
+<a href="https://docs.google.com/spreadsheets/d/1qfHjpevccgUXLwIgxlNKBejvcWeyqTP5Fj6vfBuBwuI/edit?usp=sharing">SSBot v0.5.2</a>
 
 <a href="https://docs.google.com/spreadsheets/d/1LeNW2BFuhB3MyeOuI51HakB6EC3ILXFjxSUtSrAsLaw/edit?usp=sharing">SSBot v0.5.1</a>
 
