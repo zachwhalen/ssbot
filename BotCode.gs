@@ -440,7 +440,11 @@ function generateSingleTweet() {
       while (tweet.match(/ {2}/g)) {
         tweet = tweet.replace(/ {2}/, ' ');
       }
-      doTweet(tweet, tempID[i]);
+       if (properties.constructor == "scheduled") {
+         doTweet(tweet, tempID[i]);
+       }else{
+         doTweet(tweet);
+       } 
     } else {
       Logger.log("Too short, or some other problem.");
       Logger.log(tweet);
