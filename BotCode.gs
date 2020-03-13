@@ -643,7 +643,7 @@ function wordFilter(text) {
 
   //Logger.log(banned);
 
-  for (var w = 0; w <= banned.length; w++) {
+  for (var w = 0; w < banned.length; w++) {
 
     var filter = new RegExp(banned[w]);
 
