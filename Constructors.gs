@@ -248,16 +248,16 @@ function getScheduledText(count, preview) {
       scheduledData[i][0] = "";
       scheduledSheet.getRange("a" + (i + 4)).setValue("");
     }
+    if (scheduledData[i][0] == "next-->") {         //Erase Next Pointer as it will be reset later
+      scheduledData[i][0] = "";
+      scheduledSheet.getRange("a" + scheduledData[i][3] + ":a" + scheduledData[i][3]).setValue("");
+    }
     if (scheduledData[i][1] < beforeNow             //Erase tweets that are in the past
         || scheduledData[i][0] > 0                  //Erase tweets that are already sent
         || scheduledData[i][0] == "Error") {        //Erase Error Tweets
       scheduledData[i][0] = "";
       scheduledData[i][1] = "";
       scheduledData[i][2] = "";
-    }
-    if (scheduledData[i][0] == "next-->") {         //Erase Next Pointer as it will be reset later
-      scheduledData[i][0] = "";
-      scheduledSheet.getRange("a" + scheduledData[i][3] + ":a" + scheduledData[i][3]).setValue("");
     }
   }
 
