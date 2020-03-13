@@ -408,6 +408,7 @@ function authorizationRevoke() {
 function generateSingleTweet() {
 
   var properties = PropertiesService.getScriptProperties().getProperties();
+  var now = new Date();
   
   var temp;
   var tempID;
@@ -416,6 +417,8 @@ function generateSingleTweet() {
     if (typeof tempArray == 'undefined' || tempArray.length < 1) {
       doLog("Scheduled Tweet: There is nothing to Tweet now","","Nothing");
       Logger.log("Scheduled Tweet: Nothing to tweet in this time block");
+      //Nothing happened so it is safe to move the lastRunTime forward.
+      scriptProperties.setProperty('lastRunTime', now.toJSON());
       return;
     }
     temp = tempArray.map(function(value,index) { return value[0]; });
@@ -440,17 +443,20 @@ function generateSingleTweet() {
       while (tweet.match(/ {2}/g)) {
         tweet = tweet.replace(/ {2}/, ' ');
       }
-       if (properties.constructor == "scheduled") {
-         doTweet(tweet, tempID[i]);
-       }else{
-         doTweet(tweet);
-       } 
-    } else {
+      if (properties.constructor == "scheduled") {
+        doTweet(tweet, tempID[i]);
+      }else{
+        doTweet(tweet);
+      } 
+   } else {
       Logger.log("Too short, or some other problem.");
       Logger.log(tweet);
       Logger.log("Wordfilter: " + wordFilter(tweet));
     }
   }
+  //Not doing this allows for multiple tweets to be set for the same time and get "queued" up and tweeted one minute apart.
+  //Doing this will ignore the "queue" and only send the "oldest"
+  //scriptProperties.setProperty('lastRunTime', now.toJSON());
 }
 
 function curfew() {
