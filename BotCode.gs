@@ -452,12 +452,9 @@ function generateSingleTweet() {
       Logger.log("Too short, or some other problem.");
       Logger.log(tweet);
       Logger.log("Wordfilter: " + wordFilter(tweet));
-     if (typeof tweet != 'undefined' &&
-         tweet.length > properties.min &&
-         !wordFilter(tweet)) {
+     if (curfew()) {
        doLog("Tweet blocked by curfew", tweet, 'Error');
-     } else if (typeof tweet != 'undefined' &&
-                tweet.length > properties.min) {
+     } else if (wordFilter(tweet)) {
        doLog("Tweet uses banned words", tweet, 'Error');
      } else {
        doLog("Tweet to Short or nonexistent", '', 'Error');
