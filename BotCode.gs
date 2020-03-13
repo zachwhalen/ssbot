@@ -406,8 +406,8 @@ function authorizationRevoke() {
 */
 
 function generateSingleTweet() {
-
-  var properties = PropertiesService.getScriptProperties().getProperties();
+  var scriptProperties = PropertiesService.getScriptProperties();
+  var properties = scriptProperties.getProperties();
   var now = new Date();
   
   var temp;
