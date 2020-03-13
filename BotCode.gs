@@ -452,6 +452,16 @@ function generateSingleTweet() {
       Logger.log("Too short, or some other problem.");
       Logger.log(tweet);
       Logger.log("Wordfilter: " + wordFilter(tweet));
+     if (typeof tweet != 'undefined' &&
+         tweet.length > properties.min &&
+         !wordFilter(tweet)) {
+       doLog("Tweet blocked by curfew", tweet, 'Error');
+     } else if (typeof tweet != 'undefined' &&
+                tweet.length > properties.min) {
+       doLog("Tweet uses banned words", tweet, 'Error');
+     } else {
+       doLog("Tweet to Short or nonexistent", '', 'Error');
+     }
     }
   }
   //Not doing this allows for multiple tweets to be set for the same time and get "queued" up and tweeted one minute apart.
