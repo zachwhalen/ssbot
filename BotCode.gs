@@ -269,12 +269,14 @@ function setTiming(nextPostTime) {
           .timeBased()
           .everyHours(timing)
           .create();
+      Logger.log("Scheduled Posting set to every " + timing + (timing > 1?" Hours.":" Hour."));
       doLog("Scheduled Posting set to every " + timing + (timing > 1?" Hours.":" Hour."),"","Set Timing");
     } else if (timing > 0) {
       trigger = ScriptApp.newTrigger("generateSingleTweet")
           .timeBased()
           .everyMinutes(timing)
           .create();
+      Logger.log("Scheduled Posting set to every " + timing + (timing > 1?" Minutes.":" Minute."));
       doLog("Scheduled Posting set to every " + timing + (timing > 1?" Minutes.":" Minute."),"","Set Timing");
     } else {
       trigger = ScriptApp.newTrigger("generateSingleTweet")
