@@ -446,9 +446,24 @@ function generateSingleTweet() {
         tweet = tweet.replace(/ {2}/, ' ');
       }
       if (properties.constructor == "scheduled") {
-        doTweet(tweet, tempID[i]);
+        try {
+          doTweet(tweet, tempID[i]);
+        } catch (err) {
+          doLog("Error Actually Sending Tweet (Row #"+tempID[i]+")", tweet, 'Error');
+          Logger.log("Error Actually Sending Tweet (Row #"+tempID[i]+")");
+          if (properties.isAutoTiming == "true"                              //Auto updating timing is turned on
+              && properties.isScheduledPosting == "true") {                  //Currently in unattended posting mode.
+            //Something went wrong so be sure to try again as soon as possible.
+            setTiming();
+          }
+        }
       }else{
-        doTweet(tweet);
+        try {
+          doTweet(tweet);
+        } catch (err) {
+          doLog("Error Actually Sending Tweet", tweet, 'Error');
+          Logger.log("Error Actually Sending Tweet ("+tweet+")");
+        }
       } 
    } else {
       Logger.log("Too short, or some other problem.");
