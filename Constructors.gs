@@ -242,9 +242,10 @@ function getScheduledText(count, preview) {
   //Wipe out wrong "Actual Tweet Time"
   for (i = 0; i < lastRow; i++) {
     scheduledData[i].push(i + 4);
-    if (scheduledData[i][1] > afterNow              //"Desired Tweet Time" is in the future
-        || scheduledData[i][0] > now                //"Actual Tweet Time" is in the future
-        ) {
+    if (scheduledData[i][0] != "" &&
+        (scheduledData[i][1] > afterNow             //"Desired Tweet Time" is in the future
+        || scheduledData[i][0] > now)               //"Actual Tweet Time" is in the future
+    ) {
       scheduledData[i][0] = "";
       scheduledSheet.getRange("a" + (i + 4)).setValue("");
     }
