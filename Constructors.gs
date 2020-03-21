@@ -289,8 +289,7 @@ function getScheduledText(count, preview) {
           }
         }
       } else if (!foundPreview) {                                   //Next tweet is after quota filled up.
-          scheduledSheet.getRange("a" + scheduledData[i][3] + 
-          ":a" + scheduledData[i][3]).setValue("next-->");
+          scheduledSheet.getRange("a" + scheduledData[i][3]).setValue("next-->");
           foundPreview = true;
           if (p.isAutoTiming == "true"                              //Auto updating timing is turned on
             && p.isScheduledPosting == "true") {                    //Currently in unattended posting mode.
