@@ -286,8 +286,12 @@ function setTiming(nextPostTime) {
       Logger.log("I couldn't find an interval to set so I assumed 1 hour.");
       doLog("Scheduled Posting set to every 1 Hour. (Default)","","Set Timing");
     }
-    scriptProperties.setProperty('isScheduledPosting', true);
-    scriptProperties.setProperty('timing', timing);
+    if (properties.isScheduledPosting != "true") {
+      scriptProperties.setProperty('isScheduledPosting', true);
+    }
+    if (properties.timing != timing) {
+      scriptProperties.setProperty('timing', timing);
+    }
     Logger.log(trigger);
   }
 } 
