@@ -633,6 +633,9 @@ function msgPopUp(msg) {
 }
 
 function onEdit(e) {
+  var activeSheet = e.source.getActiveSheet();
+  var range = e.range;
+  if (activeSheet.getName() !== "Settings" && activeSheet.getName() !== "Setup") return;
   updateSettings();
 }
 
