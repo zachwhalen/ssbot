@@ -264,13 +264,13 @@ function setTiming(nextPostTime) {
 
     var trigger;
     if (timing >= 60) {
-      timing /= 60;
+      var temp_timing = timing / 60;
       trigger = ScriptApp.newTrigger("generateSingleTweet")
           .timeBased()
-          .everyHours(timing)
+          .everyHours(temp_timing)
           .create();
-      Logger.log("Scheduled Posting set to every " + timing + (timing > 1?" Hours.":" Hour."));
-      doLog("Scheduled Posting set to every " + timing + (timing > 1?" Hours.":" Hour."),"","Set Timing");
+      Logger.log("Scheduled Posting set to every " + temp_timing + (temp_timing > 1?" Hours.":" Hour."));
+      doLog("Scheduled Posting set to every " + temp_timing + (temp_timing > 1?" Hours.":" Hour."),"","Set Timing");
     } else if (timing > 0) {
       trigger = ScriptApp.newTrigger("generateSingleTweet")
           .timeBased()
