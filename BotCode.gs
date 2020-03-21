@@ -307,8 +307,8 @@ function clearTiming(log) {
   if (log) {
     Logger.log("Scheduled Posting turned off.");
     doLog("Scheduled Posting turned off.","","Set Timing");
+    scriptProperties.setProperty('isScheduledPosting', false);
   }
-  scriptProperties.setProperty('isScheduledPosting', false);
 }
 
 /*
