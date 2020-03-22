@@ -259,8 +259,6 @@ function setTiming(nextPostTime) {
   if (properties.isScheduledPosting != "true"           //If not currently auto posting
       || properties.timing != timing                    //Or if desired timing is different from current timing
       || timing == 1) {                                 //Or if desired timing is at one minute. (This adds some randomness within minute for actual post time.)
-    // clear any existing triggers
-    clearTiming(false);
 
     var trigger;
     if (timing >= 60) {
@@ -292,19 +290,24 @@ function setTiming(nextPostTime) {
     if (properties.timing != timing) {
       scriptProperties.setProperty('timing', timing);
     }
+    // clear existing triggers other than this one.
+    clearTiming(trigger);
+
     Logger.log(trigger);
   }
 } 
 
-function clearTiming(log) {
-  log = (typeof log !== 'undefined' ? log : true);   //Set default log value to true
+function clearTiming(trigger) {
   var scriptProperties = PropertiesService.getScriptProperties();
   // clear any existing triggers
   var triggers = ScriptApp.getProjectTriggers();
   for (var i = 0; i < triggers.length; i++) {
-    ScriptApp.deleteTrigger(triggers[i]);
+    if (typeof trigger === 'undefined'
+        || trigger.getUniqueId() !== triggers[i].getUniqueId()) {
+          ScriptApp.deleteTrigger(triggers[i]);
+        }
   }
-  if (log) {
+  if (typeof trigger !== 'undefined') {
     Logger.log("Scheduled Posting turned off.");
     doLog("Scheduled Posting turned off.","","Set Timing");
     scriptProperties.setProperty('isScheduledPosting', false);
