@@ -307,7 +307,7 @@ function clearTiming(trigger) {
           ScriptApp.deleteTrigger(triggers[i]);
         }
   }
-  if (typeof trigger !== 'undefined') {
+  if (typeof trigger === 'undefined') {
     Logger.log("Scheduled Posting turned off.");
     doLog("Scheduled Posting turned off.","","Set Timing");
     scriptProperties.setProperty('isScheduledPosting', false);
