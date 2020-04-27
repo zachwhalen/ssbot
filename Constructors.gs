@@ -285,7 +285,7 @@ function getScheduledText(count, preview) {
           foundPreview = true;
           if (p.isAutoTiming == "true"                              //Auto updating timing is turned on
               && p.isScheduledPosting == "true") {                  //Currently in unattended posting mode.
-            setTiming(scheduledData[i][1]);                         //Since there was nothing to tweet in this time block update timing frequency.
+            tweets.push([scheduledData[i][1],'Schedule']);          //Since there was nothing to tweet in this time block update timing frequency.
           }
         }
       } else if (!foundPreview) {                                   //Next tweet is after quota filled up.
@@ -293,7 +293,7 @@ function getScheduledText(count, preview) {
           foundPreview = true;
           if (p.isAutoTiming == "true"                              //Auto updating timing is turned on
             && p.isScheduledPosting == "true") {                    //Currently in unattended posting mode.
-          setTiming(scheduledData[i][1]);                           //We tweeted but to be safe we still need to update the timing frequency.
+          tweets.push([scheduledData[i][1],'Schedule']);            //We tweeted but to be safe we still need to update the timing frequency.
         }
       }
     }

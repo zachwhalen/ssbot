@@ -441,7 +441,8 @@ function generateSingleTweet() {
     if (typeof tweet != 'undefined' &&
       tweet.length > properties.min &&
       !wordFilter(tweet) &&
-      !curfew()) {
+      !curfew() &&
+      Object.prototype.toString.call(tweet) !== '[object Date]') {
       if (properties.removeMentions == 'yes') {
         tweet = tweet.replace(/@[a-zA-Z0-9_]+/g, '');
       }
@@ -471,17 +472,19 @@ function generateSingleTweet() {
           Logger.log("Error Actually Sending Tweet ("+tweet+")");
         }
       } 
-   } else {
+    } else if (Object.prototype.toString.call(tweet) === '[object Date]') {
+      setTiming(tweet);
+    } else {
       Logger.log("Too short, or some other problem.");
       Logger.log(tweet);
       Logger.log("Wordfilter: " + wordFilter(tweet));
-     if (curfew()) {
-       doLog("Tweet blocked by curfew", tweet, 'Error');
-     } else if (wordFilter(tweet)) {
-       doLog("Tweet uses banned words", tweet, 'Error');
-     } else {
-       doLog("Tweet to Short or nonexistent", '', 'Error');
-     }
+      if (curfew()) {
+        doLog("Tweet blocked by curfew", tweet, 'Error');
+      } else if (wordFilter(tweet)) {
+        doLog("Tweet uses banned words", tweet, 'Error');
+      } else {
+        doLog("Tweet to Short or nonexistent", '', 'Error');
+      }
     }
   }
   //Not doing this allows for multiple tweets to be set for the same time and get "queued" up and tweeted one minute apart.
