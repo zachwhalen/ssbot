@@ -442,7 +442,7 @@ function generateSingleTweet() {
       tweet.length > properties.min &&
       !wordFilter(tweet) &&
       !curfew() &&
-      Object.prototype.toString.call(tweet) !== '[object Date]') {
+      tempID[i] !== 'Schedule') {
       if (properties.removeMentions == 'yes') {
         tweet = tweet.replace(/@[a-zA-Z0-9_]+/g, '');
       }
@@ -472,7 +472,7 @@ function generateSingleTweet() {
           Logger.log("Error Actually Sending Tweet ("+tweet+")");
         }
       } 
-    } else if (Object.prototype.toString.call(tweet) === '[object Date]') {
+    } else if (tempID[i] === 'Schedule') {
       setTiming(tweet);
     } else {
       Logger.log("Too short, or some other problem.");
