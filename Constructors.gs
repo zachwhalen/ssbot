@@ -242,11 +242,16 @@ function getScheduledText(count, preview) {
   //Wipe out wrong "Actual Tweet Time"
   for (i = 0; i < lastRow; i++) {
     scheduledData[i].push(i + 4);
-    if (scheduledData[i][1] > afterNow              //"Desired Tweet Time" is in the future
-        || scheduledData[i][0] > now                //"Actual Tweet Time" is in the future
-        ) {
+    if (scheduledData[i][0] != "" &&
+        (scheduledData[i][1] > afterNow             //"Desired Tweet Time" is in the future
+        || scheduledData[i][0] > now)               //"Actual Tweet Time" is in the future
+    ) {
       scheduledData[i][0] = "";
       scheduledSheet.getRange("a" + (i + 4)).setValue("");
+    }
+    if (scheduledData[i][0] == "next-->") {         //Erase Next Pointer as it will be reset later
+      scheduledData[i][0] = "";
+      scheduledSheet.getRange("a" + scheduledData[i][3]).setValue("");
     }
     if (scheduledData[i][1] < beforeNow             //Erase tweets that are in the past
         || scheduledData[i][0] > 0                  //Erase tweets that are already sent
@@ -254,10 +259,6 @@ function getScheduledText(count, preview) {
       scheduledData[i][0] = "";
       scheduledData[i][1] = "";
       scheduledData[i][2] = "";
-    }
-    if (scheduledData[i][0] == "next-->") {         //Erase Next Pointer as it will be reset later
-      scheduledData[i][0] = "";
-      scheduledSheet.getRange("a" + scheduledData[i][3] + ":a" + scheduledData[i][3]).setValue("");
     }
   }
 
@@ -273,30 +274,26 @@ function getScheduledText(count, preview) {
         if (preview) {
           tweets.push(scheduledData[i][2]);                         //Preview gets the tweets only. (No row number)
           if (!foundPreview) {                                      //Previewing so first result is also next to be tweeted.
-            scheduledSheet.getRange("a" + scheduledData[i][3] + 
-                ":a" + scheduledData[i][3]).setValue("next-->");
+            scheduledSheet.getRange("a" + scheduledData[i][3]).setValue("next-->");
             foundPreview = true;
           }
         } else if (scheduledData[i][1] < afterNow) {                //Tweet is not to far in the future
           tweets.push([scheduledData[i][2], scheduledData[i][3]]);  //Not previewing so also send row number that way "Actual Tweet Time" can be set.
-          scheduledSheet.getRange("a" + scheduledData[i][3] +       //Mark all tweets about to be tweeted as next. Actually tweeting them will overwrite this.
-              ":a" + scheduledData[i][3]).setValue("next-->");
+          scheduledSheet.getRange("a" + scheduledData[i][3]).setValue("next-->");
         } else if (!foundPreview) {                                 //Not previewing, tweet is in the future, and next marker not set 
-          scheduledSheet.getRange("a" + scheduledData[i][3] + 
-          ":a" + scheduledData[i][3]).setValue("next-->");
+          scheduledSheet.getRange("a" + scheduledData[i][3]).setValue("next-->");
           foundPreview = true;
           if (p.isAutoTiming == "true"                              //Auto updating timing is turned on
               && p.isScheduledPosting == "true") {                  //Currently in unattended posting mode.
-            setTiming(scheduledData[i][1]);                         //Since there was nothing to tweet in this time block update timing frequency.
+            tweets.push([scheduledData[i][1],'Schedule']);          //Since there was nothing to tweet in this time block update timing frequency.
           }
         }
       } else if (!foundPreview) {                                   //Next tweet is after quota filled up.
-          scheduledSheet.getRange("a" + scheduledData[i][3] + 
-          ":a" + scheduledData[i][3]).setValue("next-->");
+          scheduledSheet.getRange("a" + scheduledData[i][3]).setValue("next-->");
           foundPreview = true;
           if (p.isAutoTiming == "true"                              //Auto updating timing is turned on
             && p.isScheduledPosting == "true") {                    //Currently in unattended posting mode.
-          setTiming(scheduledData[i][1]);                           //We tweeted but to be safe we still need to update the timing frequency.
+          tweets.push([scheduledData[i][1],'Schedule']);            //We tweeted but to be safe we still need to update the timing frequency.
         }
       }
     }

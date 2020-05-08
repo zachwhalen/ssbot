@@ -257,24 +257,23 @@ function setTiming(nextPostTime) {
   }
 
   if (properties.isScheduledPosting != "true"           //If not currently auto posting
-      || properties.timing != timing                    //Or if desired timing is different from current timing
-      || timing == 1) {                                 //Or if desired timing is at one minute. (This adds some randomness within minute for actual post time.)
-    // clear any existing triggers
-    clearTiming(false);
+      || properties.timing != timing) {                 //Or if desired timing is different from current timing
 
     var trigger;
     if (timing >= 60) {
-      timing /= 60;
+      var temp_timing = timing / 60;
       trigger = ScriptApp.newTrigger("generateSingleTweet")
           .timeBased()
-          .everyHours(timing)
+          .everyHours(temp_timing)
           .create();
-      doLog("Scheduled Posting set to every " + timing + (timing > 1?" Hours.":" Hour."),"","Set Timing");
+      Logger.log("Scheduled Posting set to every " + temp_timing + (temp_timing > 1?" Hours.":" Hour."));
+      doLog("Scheduled Posting set to every " + temp_timing + (temp_timing > 1?" Hours.":" Hour."),"","Set Timing");
     } else if (timing > 0) {
       trigger = ScriptApp.newTrigger("generateSingleTweet")
           .timeBased()
           .everyMinutes(timing)
           .create();
+      Logger.log("Scheduled Posting set to every " + timing + (timing > 1?" Minutes.":" Minute."));
       doLog("Scheduled Posting set to every " + timing + (timing > 1?" Minutes.":" Minute."),"","Set Timing");
     } else {
       trigger = ScriptApp.newTrigger("generateSingleTweet")
@@ -284,25 +283,34 @@ function setTiming(nextPostTime) {
       Logger.log("I couldn't find an interval to set so I assumed 1 hour.");
       doLog("Scheduled Posting set to every 1 Hour. (Default)","","Set Timing");
     }
-    scriptProperties.setProperty('isScheduledPosting', true);
-    scriptProperties.setProperty('timing', timing);
+    if (properties.isScheduledPosting != "true") {
+      scriptProperties.setProperty('isScheduledPosting', true);
+    }
+    if (properties.timing != timing) {
+      scriptProperties.setProperty('timing', timing);
+    }
+    // clear existing triggers other than this one.
+    clearTiming(trigger);
+
     Logger.log(trigger);
   }
 } 
 
-function clearTiming(log) {
-  log = (typeof log !== 'undefined' ? log : true);   //Set default log value to true
+function clearTiming(trigger) {
   var scriptProperties = PropertiesService.getScriptProperties();
   // clear any existing triggers
   var triggers = ScriptApp.getProjectTriggers();
   for (var i = 0; i < triggers.length; i++) {
-    ScriptApp.deleteTrigger(triggers[i]);
+    if (typeof trigger === 'undefined'
+        || trigger.getUniqueId() !== triggers[i].getUniqueId()) {
+          ScriptApp.deleteTrigger(triggers[i]);
+        }
   }
-  if (log) {
+  if (typeof trigger === 'undefined') {
     Logger.log("Scheduled Posting turned off.");
     doLog("Scheduled Posting turned off.","","Set Timing");
+    scriptProperties.setProperty('isScheduledPosting', false);
   }
-  scriptProperties.setProperty('isScheduledPosting', false);
 }
 
 /*
@@ -406,8 +414,9 @@ function authorizationRevoke() {
 */
 
 function generateSingleTweet() {
-
-  var properties = PropertiesService.getScriptProperties().getProperties();
+  var scriptProperties = PropertiesService.getScriptProperties();
+  var properties = scriptProperties.getProperties();
+  var now = new Date();
   
   var temp;
   var tempID;
@@ -416,6 +425,8 @@ function generateSingleTweet() {
     if (typeof tempArray == 'undefined' || tempArray.length < 1) {
       doLog("Scheduled Tweet: There is nothing to Tweet now","","Nothing");
       Logger.log("Scheduled Tweet: Nothing to tweet in this time block");
+      //Nothing happened so it is safe to move the lastRunTime forward.
+      scriptProperties.setProperty('lastRunTime', now.toJSON());
       return;
     }
     temp = tempArray.map(function(value,index) { return value[0]; });
@@ -430,7 +441,8 @@ function generateSingleTweet() {
     if (typeof tweet != 'undefined' &&
       tweet.length > properties.min &&
       !wordFilter(tweet) &&
-      !curfew()) {
+      !curfew() &&
+      tempID[i] !== 'Schedule') {
       if (properties.removeMentions == 'yes') {
         tweet = tweet.replace(/@[a-zA-Z0-9_]+/g, '');
       }
@@ -440,17 +452,44 @@ function generateSingleTweet() {
       while (tweet.match(/ {2}/g)) {
         tweet = tweet.replace(/ {2}/, ' ');
       }
-       if (properties.constructor == "scheduled") {
-         doTweet(tweet, tempID[i]);
-       }else{
-         doTweet(tweet);
-       } 
+      if (properties.constructor == "scheduled") {
+        try {
+          doTweet(tweet, tempID[i]);
+        } catch (err) {
+          doLog("Error Actually Sending Tweet (Row #"+tempID[i]+")", tweet, 'Error');
+          Logger.log("Error Actually Sending Tweet (Row #"+tempID[i]+")");
+          if (properties.isAutoTiming == "true"                              //Auto updating timing is turned on
+              && properties.isScheduledPosting == "true") {                  //Currently in unattended posting mode.
+            //Something went wrong so be sure to try again as soon as possible.
+            setTiming();
+          }
+        }
+      }else{
+        try {
+          doTweet(tweet);
+        } catch (err) {
+          doLog("Error Actually Sending Tweet", tweet, 'Error');
+          Logger.log("Error Actually Sending Tweet ("+tweet+")");
+        }
+      } 
+    } else if (tempID[i] === 'Schedule') {
+      setTiming(tweet);
     } else {
       Logger.log("Too short, or some other problem.");
       Logger.log(tweet);
       Logger.log("Wordfilter: " + wordFilter(tweet));
+      if (curfew()) {
+        doLog("Tweet blocked by curfew", tweet, 'Error');
+      } else if (wordFilter(tweet)) {
+        doLog("Tweet uses banned words", tweet, 'Error');
+      } else {
+        doLog("Tweet to Short or nonexistent", '', 'Error');
+      }
     }
   }
+  //Not doing this allows for multiple tweets to be set for the same time and get "queued" up and tweeted one minute apart.
+  //Doing this will ignore the "queue" and only send the "oldest"
+  //scriptProperties.setProperty('lastRunTime', now.toJSON());
 }
 
 function curfew() {
@@ -603,6 +642,9 @@ function msgPopUp(msg) {
 }
 
 function onEdit(e) {
+  var activeSheet = e.source.getActiveSheet();
+  var range = e.range;
+  if (activeSheet.getName() !== "Settings" && activeSheet.getName() !== "Setup") return;
   updateSettings();
 }
 
@@ -637,7 +679,7 @@ function wordFilter(text) {
 
   //Logger.log(banned);
 
-  for (var w = 0; w <= banned.length; w++) {
+  for (var w = 0; w < banned.length; w++) {
 
     var filter = new RegExp(banned[w]);
 
