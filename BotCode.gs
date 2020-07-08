@@ -115,16 +115,17 @@ function everyRotate() {
 
 }
 
-function logScheduledTweet(rowID, success) {
+function logScheduledTweet(rowID, success, response) {
   var display = "";
+  var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
   if (success) {
     var d = new Date();
     var display = Utilities.formatDate(d, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), "yyyy-MM-dd hh:mm a");
+    scheduledSheet.getRange("b" + rowID + ":b" + rowID).setValue(response.id_str);
   } else {
     display = "Error";
   }
-  var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
-  scheduledSheet.getRange("a" + rowID + ":a" + rowID).setValue(display);
+  scheduledSheet.getRange("c" + rowID + ":c" + rowID).setValue(display);
 }
 
 function getTweets(count, preview) {
@@ -611,7 +612,7 @@ function doTweet(tweet, tweetID) {
     }
 
     if (response.created_at && properties.constructor === 'scheduled') {
-      logScheduledTweet(tweetID, true);
+      logScheduledTweet(tweetID, true, response);
     }
 
     doLog(response, tweet, 'Success');
@@ -624,7 +625,7 @@ function doTweet(tweet, tweetID) {
       everyRotate();
     }
     if (properties.constructor === 'scheduled' && properties.everyFail === 'skip') {
-      logScheduledTweet(tweetID, false);
+      logScheduledTweet(tweetID, false, response);
     }
   }
 

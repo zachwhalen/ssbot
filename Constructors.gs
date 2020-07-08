@@ -226,7 +226,7 @@ function getScheduledText(count, preview) {
   }
 
   var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
-  var scheduledData = scheduledSheet.getRange("a" + 4 + ":c" + scheduledSheet.getLastRow()).getValues();
+  var scheduledData = scheduledSheet.getRange("c" + 4 + ":e" + scheduledSheet.getLastRow()).getValues();
   var lastRow = scheduledData.length;
   var afterFudgeFactor;
   if (p.isAutoTiming) {
@@ -247,11 +247,11 @@ function getScheduledText(count, preview) {
         || scheduledData[i][0] > now)               //"Actual Tweet Time" is in the future
     ) {
       scheduledData[i][0] = "";
-      scheduledSheet.getRange("a" + (i + 4)).setValue("");
+      scheduledSheet.getRange("c" + (i + 4)).setValue("");
     }
     if (scheduledData[i][0] == "next-->") {         //Erase Next Pointer as it will be reset later
       scheduledData[i][0] = "";
-      scheduledSheet.getRange("a" + scheduledData[i][3]).setValue("");
+      scheduledSheet.getRange("c" + scheduledData[i][3]).setValue("");
     }
     if (scheduledData[i][1] < beforeNow             //Erase tweets that are in the past
         || scheduledData[i][0] > 0                  //Erase tweets that are already sent
@@ -274,14 +274,14 @@ function getScheduledText(count, preview) {
         if (preview) {
           tweets.push(scheduledData[i][2]);                         //Preview gets the tweets only. (No row number)
           if (!foundPreview) {                                      //Previewing so first result is also next to be tweeted.
-            scheduledSheet.getRange("a" + scheduledData[i][3]).setValue("next-->");
+            scheduledSheet.getRange("c" + scheduledData[i][3]).setValue("next-->");
             foundPreview = true;
           }
         } else if (scheduledData[i][1] < afterNow) {                //Tweet is not to far in the future
           tweets.push([scheduledData[i][2], scheduledData[i][3]]);  //Not previewing so also send row number that way "Actual Tweet Time" can be set.
-          scheduledSheet.getRange("a" + scheduledData[i][3]).setValue("next-->");
+          scheduledSheet.getRange("c" + scheduledData[i][3]).setValue("next-->");
         } else if (!foundPreview) {                                 //Not previewing, tweet is in the future, and next marker not set 
-          scheduledSheet.getRange("a" + scheduledData[i][3]).setValue("next-->");
+          scheduledSheet.getRange("c" + scheduledData[i][3]).setValue("next-->");
           foundPreview = true;
           if (p.isAutoTiming == "true"                              //Auto updating timing is turned on
               && p.isScheduledPosting == "true") {                  //Currently in unattended posting mode.
@@ -289,7 +289,7 @@ function getScheduledText(count, preview) {
           }
         }
       } else if (!foundPreview) {                                   //Next tweet is after quota filled up.
-          scheduledSheet.getRange("a" + scheduledData[i][3]).setValue("next-->");
+          scheduledSheet.getRange("c" + scheduledData[i][3]).setValue("next-->");
           foundPreview = true;
           if (p.isAutoTiming == "true"                              //Auto updating timing is turned on
             && p.isScheduledPosting == "true") {                    //Currently in unattended posting mode.
