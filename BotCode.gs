@@ -659,12 +659,6 @@ function wordFilter(text) {
 
   var properties = PropertiesService.getScriptProperties().getProperties();
 
-  if (properties.ban.length > 1) {
-    var more = properties.ban.split(",");
-  }
-
-
-
   var badList = [
     "beeyotch", "biatch", "bitch", "chinaman", "chinamen", "chink", "cuck", "crip", "cunt", "dago", "daygo", "dego", "dick", "douchebag", "dyke", "fag", "fatass", "fatso", "gash", "gimp", "golliwog", "gook", "gyp", "halfbreed", "half-breed", "homo", "hooker", "jap", "kike", "kraut", "lame", "lardass", "lesbo", "negro", "nigga", "nigger", "paki", "pickaninny", "pussy", "raghead", "retard", "shemale", "skank", "slut", "spade", "spic", "spook", "tard", "tits", "titt", "trannies", "tranny", "twat", "wetback", "whore", "wop"
   ];
@@ -672,7 +666,10 @@ function wordFilter(text) {
   var banned = new Array();
 
   if (properties.ban.length > 1) {
-    var banned = badList.concat(properties.ban.split(","));
+    //If properties.ban is OFF then return empty array. Thus turning off this word filter.
+    if (properties.ban !== "OFF") {
+      var banned = badList.concat(properties.ban.split(","));      
+    }
   } else {
     var banned = badList;
   }
