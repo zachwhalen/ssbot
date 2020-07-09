@@ -241,17 +241,17 @@ function getScheduledText(count, preview) {
 
   //Wipe out wrong "Actual Tweet Time"
   for (i = 0; i < lastRow; i++) {
-    scheduledData[i].push(i + 4);
+    scheduledData[i].push(i + 4); //Row ID
     if (scheduledData[i][0] != "" &&
         (scheduledData[i][1] > afterNow             //"Desired Tweet Time" is in the future
         || scheduledData[i][0] > now)               //"Actual Tweet Time" is in the future
     ) {
       scheduledData[i][0] = "";
-      scheduledSheet.getRange("c" + (i + 4)).setValue("");
+      scheduledSheet.getRange("b" + scheduledData[i][3]+":c" + scheduledData[i][3]).setValues([["",""]]);
     }
     if (scheduledData[i][0] == "next-->") {         //Erase Next Pointer as it will be reset later
       scheduledData[i][0] = "";
-      scheduledSheet.getRange("c" + scheduledData[i][3]).setValue("");
+      scheduledSheet.getRange("b" + scheduledData[i][3]+":c" + scheduledData[i][3]).setValues([["",""]]);
     }
     if (scheduledData[i][1] < beforeNow             //Erase tweets that are in the past
         || scheduledData[i][0] > 0                  //Erase tweets that are already sent
