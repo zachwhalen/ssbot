@@ -442,7 +442,7 @@ function generateSingleTweet() {
       tweet.length > properties.min &&
       !wordFilter(tweet) &&
       !curfew() &&
-      tempID[i] !== 'Schedule') {
+      (typeof tempID === 'undefined' || tempID[i] !== 'Schedule')) {
       if (properties.removeMentions == 'yes') {
         tweet = tweet.replace(/@[a-zA-Z0-9_]+/g, '');
       }
