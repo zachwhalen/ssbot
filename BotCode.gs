@@ -421,6 +421,8 @@ function generateSingleTweet() {
   
   var temp;
   var tempID;
+  var retweetIDs;
+  var replyIDs;
   if (properties.constructor == "scheduled") {
     var tempArray = getTweets(1, false); //1 tweet per block of time
     if (typeof tempArray == 'undefined' || tempArray.length < 1) {
@@ -432,6 +434,8 @@ function generateSingleTweet() {
     }
     temp = tempArray.map(function(value,index) { return value[0]; });
     tempID = tempArray.map(function(value,index) { return value[1]; });
+    retweetIDs = tempArray.map(function(value,index) { return value[2]; });
+    replyIDs = tempArray.map(function(value,index) { return value[3]; });
   } else {
     temp = getTweets(1, false);
   }
@@ -440,7 +444,7 @@ function generateSingleTweet() {
     tweet = temp[i];
 
     if (typeof tweet != 'undefined' &&
-      tweet.length > properties.min &&
+      (tweet.length > properties.min || retweetIDs[i] !== '') &&
       !wordFilter(tweet) &&
       !curfew() &&
       (typeof tempID === 'undefined' || tempID[i] !== 'Schedule')) {
@@ -455,7 +459,7 @@ function generateSingleTweet() {
       }
       if (properties.constructor == "scheduled") {
         try {
-          doTweet(tweet, tempID[i]);
+          doTweet(tweet, tempID[i], retweetIDs[i], replyIDs[i]);
         } catch (err) {
           doLog("Error Actually Sending Tweet (Row #"+tempID[i]+")", tweet, 'Error');
           Logger.log("Error Actually Sending Tweet (Row #"+tempID[i]+")");
@@ -566,9 +570,8 @@ function getMediaIds(tweet) {
  *
 */
 
-function doTweet(tweet, tweetID) {
+function doTweet(tweet, tweetID, retweetID, replyID) {
   var properties = PropertiesService.getScriptProperties().getProperties();
-
 
   // if Image URL attaching is on, and one or more are found, pass the tweet to a function that will do the upload and 
   // return an array of media_ids
@@ -586,10 +589,27 @@ function doTweet(tweet, tweetID) {
   if (service.hasAccess()) {
 
     if (typeof media != 'undefined' && media.length > 0) {
-      var payload = { status: tweet, media_ids: media };
+      if (typeof retweetID === 'undefined' || retweetID.length < 10) {
+        if (typeof replyID === 'undefined' || replyID.length < 10) {
+          var payload = { status: tweet, media_ids: media };
+        } else {
+          var payload = { status: tweet, media_ids: media, in_reply_to_status_id: replyID, auto_populate_reply_metadata: true };
+        }
+      } else {
+        var payload = { status: tweet, media_ids: media, attachment_url: 'https://twitter.com/username/status/'+retweetID };
+      }
+      
 
     } else {
-      var payload = { status: tweet };
+      if (typeof retweetID === 'undefined' || retweetID.length < 10) {
+        if (typeof replyID === 'undefined' || replyID.length < 10) {
+          var payload = { status: tweet };
+        } else {
+          var payload = { status: tweet, in_reply_to_status_id: replyID, auto_populate_reply_metadata: true };
+        }
+      } else {
+        var payload = { status: tweet, attachment_url: 'https://twitter.com/username/status/'+retweetID  };
+      }
     }
   } else {
     var authorizationUrl = service.authorize();
@@ -601,9 +621,13 @@ function doTweet(tweet, tweetID) {
     payload: payload
   };
 
-
   try {
-    var result = service.fetch('https://api.twitter.com/1.1/statuses/update.json', parameters);
+    if (tweet.length == 0 && typeof retweetID !== 'undefined' ) {
+      parameters = { method: 'post' };
+      var result = service.fetch('https://api.twitter.com/1.1/statuses/retweet/'+retweetID+'.json', parameters);
+    } else {
+      var result = service.fetch('https://api.twitter.com/1.1/statuses/update.json', parameters);
+    }
     Logger.log(result.getContentText());
     var response = JSON.parse(result.getContentText());
 
