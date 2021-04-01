@@ -70,8 +70,8 @@ function updateSettings() {
     setProperty('ban', ss[8].toString()).
     setProperty('removeHashes', ss[9].toString()).
     setProperty('removeMentions', ss[10].toString()).
-    setProperty('everyFail', ss[11].toString().
-    setProperty('timingReset', "false"));
+    setProperty('everyFail', ss[11].toString()).
+    setProperty('timingReset', "false");
 
   var quietStart = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings").getRange("b8").getValue().getHours();
   var quietStop = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings").getRange("b9").getValue().getHours();
