@@ -314,6 +314,25 @@ function clearTiming(trigger) {
   }
 }
 
+function resetTiming() {
+  var p = PropertiesService.getScriptProperties().getProperties();
+  var sanityFactor = (9)*60000;                     //Only do anything if no runs in this long
+
+  var now = new Date();
+  var lastRunFudged = new Date(p.lastRunTime + sanityFactor);
+
+  if (now > lastRunFudged) {
+    Logger.log("Resetting Scheduled Posting.");
+    trigger = ScriptApp.newTrigger("setTiming")
+          .timeBased()
+          .everyMinutes(1)
+          .create();
+      Logger.log("Resetting Scheduled Posting to every 1 Minute. (Note: setTiming should erase this trigger.)");
+  } else {
+    Logger.log("Not Resetting Scheduled Posting Due to Recent Run.");
+  }
+}
+
 /*
 
   ADD THE "BOT" MENU
