@@ -118,12 +118,12 @@ function everyRotate() {
 function logScheduledTweet(rowID, success, response) {
   var display = "";
   var scheduledSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('scheduled');
-  if (success) {
+  if (success == "true") {
     var d = new Date();
     var display = Utilities.formatDate(d, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), "yyyy-MM-dd hh:mm a");
     scheduledSheet.getRange("b" + rowID + ":b" + rowID).setValue(response.id_str);
   } else {
-    display = "Error";
+    display = success;
   }
   scheduledSheet.getRange("c" + rowID + ":c" + rowID).setValue(display);
 }
@@ -655,7 +655,7 @@ function doTweet(tweet, tweetID, retweetID, replyID) {
     }
 
     if (response.created_at && properties.constructor === 'scheduled') {
-      logScheduledTweet(tweetID, true, response);
+      logScheduledTweet(tweetID, "true", response);
     }
 
     doLog(response, tweet, 'Success');
@@ -668,7 +668,10 @@ function doTweet(tweet, tweetID, retweetID, replyID) {
       everyRotate();
     }
     if (properties.constructor === 'scheduled' && properties.everyFail === 'skip') {
-      logScheduledTweet(tweetID, false, response);
+      logScheduledTweet(tweetID, "Error", response);
+    }
+    if (properties.constructor === 'scheduled' && e.toString().includes("Status is a duplicate")) {
+      logScheduledTweet(tweetID, "Duplicate (Race Condition?)", response);
     }
   }
 
