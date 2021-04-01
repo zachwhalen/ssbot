@@ -228,7 +228,7 @@ function setTiming(nextPostTime) {
   var timing = properties.timing;
 
   if (properties.timingReset) {
-    doLog("Resetting Scheduled Posting.","","Set Timing");
+    doLog("Resetting Scheduled Posting.","","Reset Timing");
     scriptProperties.setProperty('timingReset', false);
   }
 
