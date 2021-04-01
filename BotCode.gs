@@ -71,7 +71,7 @@ function updateSettings() {
     setProperty('removeHashes', ss[9].toString()).
     setProperty('removeMentions', ss[10].toString()).
     setProperty('everyFail', ss[11].toString().
-    setProperty('timingReset', false));
+    setProperty('timingReset', "false"));
 
   var quietStart = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings").getRange("b8").getValue().getHours();
   var quietStop = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings").getRange("b9").getValue().getHours();
@@ -227,9 +227,9 @@ function setTiming(nextPostTime) {
   var scriptProperties = PropertiesService.getScriptProperties();
   var timing = properties.timing;
 
-  if (properties.timingReset) {
+  if (properties.timingReset == "true") {
     doLog("Resetting Scheduled Posting.","","Reset Timing");
-    scriptProperties.setProperty('timingReset', false);
+    scriptProperties.setProperty('timingReset', "false");
   }
 
   if (properties.isAutoTiming == "true") {            //We are supposed to self adjust the timing schedule.
@@ -329,6 +329,7 @@ function resetTiming() {
 
   if (now > lastRunFudged) {
     Logger.log("Resetting Scheduled Posting.");
+    scriptProperties.setProperty('timingReset', "true");
     trigger = ScriptApp.newTrigger("setTiming")
           .timeBased()
           .everyMinutes(1)
