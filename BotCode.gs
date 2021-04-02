@@ -674,8 +674,13 @@ function doTweet(tweet, tweetID, retweetID, replyID) {
     if (properties.constructor === 'every' && properties.everyFail === 'skip') {
       everyRotate();
     }
-    if (properties.constructor === 'scheduled' && properties.everyFail === 'skip') {
-      logScheduledTweet(tweetID, "Error", response);
+    if (properties.constructor === 'scheduled') {
+      if (properties.everyFail === 'skip') {
+        logScheduledTweet(tweetID, "Error", response);
+      } else {
+        //Something went wrong so be sure to try again as soon as possible.
+        setTiming();
+      }
     }
     if (properties.constructor === 'scheduled' && e.toString().includes("Status is a duplicate")) {
       logScheduledTweet(tweetID, "Duplicate (Race Condition?)", response);
