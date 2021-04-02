@@ -255,6 +255,7 @@ function getScheduledText(count, preview) {
     }
     if (scheduledData[i][3] < beforeNow             //Erase tweets that are in the past
         || scheduledData[i][2] > 0                  //Erase tweets that are already sent
+        || scheduledData[i][2] == "Duplicate (Race Condition?)"
         || scheduledData[i][2] == "Error") {        //Erase Error Tweets
       scheduledData[i][2] = "";
       scheduledData[i][3] = "";
