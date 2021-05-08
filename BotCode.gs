@@ -531,15 +531,15 @@ function curfew() {
   var time = new Date();
   var hour = time.getHours();
 
-  var quietBegin = properties.quietStart;
-  var quietEnd = properties.quietEnd;
+  var quietBegin = parseFloat(properties.quietStart);
+  var quietEnd = parseFloat(properties.quietEnd);
 
   if (quietBegin == quietEnd) {
     return false;
   }
 
   if (quietEnd > quietBegin) {
-    if (hour >= quietBegin & hour < quietEnd) {
+    if (hour >= quietBegin && hour < quietEnd) {
       Logger.log("Quiet hours");
       return true;
     }
@@ -549,6 +549,9 @@ function curfew() {
       return true;
     }
   }
+
+  return false;
+}
 
   return false;
 }
