@@ -553,9 +553,6 @@ function curfew() {
   return false;
 }
 
-  return false;
-}
-
 function getMediaIds(tweet) {
 
   //var tweet = 'Testing http://i.imgur.com/AsghXmB.png http://i.imgur.com/Di9t0XB.jpg';
