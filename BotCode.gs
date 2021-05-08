@@ -544,7 +544,7 @@ function curfew() {
       return true;
     }
   } else {
-    if (hour >= quietBegin | hour < quietEnd) {
+    if (hour >= quietBegin || hour < quietEnd) {
       Logger.log("Quiet hours");
       return true;
     }
