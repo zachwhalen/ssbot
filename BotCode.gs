@@ -469,6 +469,12 @@ function generateSingleTweet() {
     tempID = tempArray.map(function(value,index) { return value[1]; });
     retweetIDs = tempArray.map(function(value,index) { return value[2]; });
     replyIDs = tempArray.map(function(value,index) { return value[3]; });
+    if (tempID[0] === 'Schedule') {
+      doLog("Scheduled Tweet: There is nothing to Tweet now","","Nothing");
+      Logger.log("Scheduled Tweet: Nothing to tweet in this time block");
+      //Nothing happened so it is safe to move the lastRunTime forward.
+      scriptProperties.setProperty('lastRunTime', now.toJSON());
+    }
   } else {
     temp = getTweets(1, false);
   }
