@@ -258,6 +258,11 @@ function setTiming(nextPostTime) {
       } else {
         timing = 1;
       }
+      if (timing > 1) {
+        //More than 1 minute until next tweet so it is safe to move the lastRunTime forward.
+          var now = new Date();
+          scriptProperties.setProperty('lastRunTime', now.toJSON());
+      }
     } else {
       timing = 1; //Since we have no idea when the next scheduled post should be assume it needs to be immediately.
     }
@@ -321,11 +326,13 @@ function clearTiming(trigger) {
 }
 
 function resetTiming() {
-  var p = PropertiesService.getScriptProperties().getProperties();
-  var sanityFactor = (9)*60000;                     //Only do anything if no runs in this long
+  var scriptProperties = PropertiesService.getScriptProperties();
+  var p = scriptProperties.getProperties();
+  var sanityFactor = 9;                     //Only do anything if no runs in this many minutes
 
   var now = new Date();
-  var lastRunFudged = new Date(p.lastRunTime + sanityFactor);
+  var lastRunFudged = new Date(p.lastRunTime);
+  lastRunFudged.setMinutes(lastRunFudged.getMinutes() + sanityFactor)
 
   if (now > lastRunFudged) {
     Logger.log("Resetting Scheduled Posting.");
