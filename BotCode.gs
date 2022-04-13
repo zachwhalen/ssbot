@@ -328,22 +328,28 @@ function clearTiming(trigger) {
 function resetTiming() {
   var scriptProperties = PropertiesService.getScriptProperties();
   var p = scriptProperties.getProperties();
-  var sanityFactor = 9;                     //Only do anything if no runs in this many minutes
+  if (ScriptApp.getProjectTriggers().length < 1   //No active timing triggers (Note: adding triggers to this project will break this assumption.)
+      || p.timing != 1) {                         //Or current timing is not already the minimum.
 
-  var now = new Date();
-  var lastRunFudged = new Date(p.lastRunTime);
-  lastRunFudged.setMinutes(lastRunFudged.getMinutes() + sanityFactor)
+    var sanityFactor = 9;                     //Only do anything if no runs in this many minutes
 
-  if (now > lastRunFudged) {
-    Logger.log("Resetting Scheduled Posting.");
-    scriptProperties.setProperty('timingReset', "true");
-    trigger = ScriptApp.newTrigger("setTiming")
-          .timeBased()
-          .everyMinutes(1)
-          .create();
-      Logger.log("Resetting Scheduled Posting to every 1 Minute. (Note: setTiming should erase this trigger.)");
+    var now = new Date();
+    var lastRunFudged = new Date(p.lastRunTime);
+    lastRunFudged.setMinutes(lastRunFudged.getMinutes() + sanityFactor)
+
+    if (now > lastRunFudged) {
+      Logger.log("Resetting Scheduled Posting.");
+      scriptProperties.setProperty('timingReset', "true");
+      trigger = ScriptApp.newTrigger("setTiming")
+            .timeBased()
+            .everyMinutes(1)
+            .create();
+        Logger.log("Resetting Scheduled Posting to every 1 Minute. (Note: setTiming should erase this trigger.)");
+    } else {
+      Logger.log("Not Resetting Scheduled Posting Due to Recent Run.");
+    }
   } else {
-    Logger.log("Not Resetting Scheduled Posting Due to Recent Run.");
+    Logger.log("Not Resetting Scheduled Posting Due to no need.");
   }
 }
 
