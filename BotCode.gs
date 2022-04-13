@@ -228,7 +228,7 @@ function setTiming(nextPostTime) {
   var timing = properties.timing;
 
   if (properties.timingReset == "true") {
-    doLog("Resetting Scheduled Posting.","","Reset Timing");
+    doLog("","Resetting Scheduled Posting.","Reset Timing");
     scriptProperties.setProperty('timingReset', "false");
   }
 
@@ -279,21 +279,21 @@ function setTiming(nextPostTime) {
           .everyHours(temp_timing)
           .create();
       Logger.log("Scheduled Posting set to every " + temp_timing + (temp_timing > 1?" Hours.":" Hour."));
-      doLog("Scheduled Posting set to every " + temp_timing + (temp_timing > 1?" Hours.":" Hour."),"","Set Timing");
+      doLog("","Scheduled Posting set to every " + temp_timing + (temp_timing > 1?" Hours.":" Hour."),"Set Timing");
     } else if (timing > 0) {
       trigger = ScriptApp.newTrigger("generateSingleTweet")
           .timeBased()
           .everyMinutes(timing)
           .create();
       Logger.log("Scheduled Posting set to every " + timing + (timing > 1?" Minutes.":" Minute."));
-      doLog("Scheduled Posting set to every " + timing + (timing > 1?" Minutes.":" Minute."),"","Set Timing");
+      doLog("","Scheduled Posting set to every " + timing + (timing > 1?" Minutes.":" Minute."),"Set Timing");
     } else {
       trigger = ScriptApp.newTrigger("generateSingleTweet")
           .timeBased()
           .everyHours(1)
           .create();
       Logger.log("I couldn't find an interval to set so I assumed 1 hour.");
-      doLog("Scheduled Posting set to every 1 Hour. (Default)","","Set Timing");
+      doLog("","Scheduled Posting set to every 1 Hour. (Default)","Set Timing");
     }
     if (properties.isScheduledPosting != "true") {
       scriptProperties.setProperty('isScheduledPosting', true);
@@ -320,7 +320,7 @@ function clearTiming(trigger) {
   }
   if (typeof trigger === 'undefined') {
     Logger.log("Scheduled Posting turned off.");
-    doLog("Scheduled Posting turned off.","","Set Timing");
+    doLog("","Scheduled Posting turned off.","Set Timing");
     scriptProperties.setProperty('isScheduledPosting', false);
   }
 }
@@ -465,7 +465,7 @@ function generateSingleTweet() {
   if (properties.constructor == "scheduled") {
     var tempArray = getTweets(1, false); //1 tweet per block of time
     if (typeof tempArray == 'undefined' || tempArray.length < 1) {
-      doLog("Scheduled Tweet: There is nothing to Tweet now","","Nothing");
+      doLog("","Scheduled Tweet: There is nothing to Tweet now","Nothing");
       Logger.log("Scheduled Tweet: Nothing to tweet in this time block");
       //Nothing happened so it is safe to move the lastRunTime forward.
       scriptProperties.setProperty('lastRunTime', now.toJSON());
@@ -476,7 +476,7 @@ function generateSingleTweet() {
     retweetIDs = tempArray.map(function(value,index) { return value[2]; });
     replyIDs = tempArray.map(function(value,index) { return value[3]; });
     if (tempID[0] === 'Schedule') {
-      doLog("Scheduled Tweet: There is nothing to Tweet now","","Nothing");
+      doLog("","Scheduled Tweet: There is nothing to Tweet now","Nothing");
       Logger.log("Scheduled Tweet: Nothing to tweet in this time block");
       //Nothing happened so it is safe to move the lastRunTime forward.
       scriptProperties.setProperty('lastRunTime', now.toJSON());
@@ -533,7 +533,7 @@ function generateSingleTweet() {
       } else if (wordFilter(tweet)) {
         doLog("Tweet uses banned words", tweet, 'Error');
       } else {
-        doLog("Tweet to Short or nonexistent", '', 'Error');
+        doLog("Tweet to Short or nonexistent", tweet, 'Error');
       }
     }
   }
