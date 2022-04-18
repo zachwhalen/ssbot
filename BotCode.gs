@@ -70,8 +70,7 @@ function updateSettings() {
     setProperty('ban', ss[8].toString()).
     setProperty('removeHashes', ss[9].toString()).
     setProperty('removeMentions', ss[10].toString()).
-    setProperty('everyFail', ss[11].toString()).
-    setProperty('timingReset', "false");
+    setProperty('everyFail', ss[11].toString());
 
   var quietStart = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings").getRange("b8").getValue().getHours();
   var quietStop = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings").getRange("b9").getValue().getHours();
@@ -85,6 +84,12 @@ function updateSettings() {
   if (!lastRun) {
     var now = new Date();
     scriptProperties.setProperty('lastRunTime', now.toJSON());
+  }
+
+  var timingReset = scriptProperties.getProperty('timingReset');
+  if (!timingReset) {
+    var now = new Date();
+    scriptProperties.setProperty('timingReset', now.toJSON());
   }
 
   if (ScriptApp.getProjectTriggers().length > 0) {
@@ -227,11 +232,6 @@ function setTiming(nextPostTime) {
   var scriptProperties = PropertiesService.getScriptProperties();
   var timing = properties.timing;
 
-  if (properties.timingReset == "true") {
-    doLog("","Resetting Scheduled Posting.","Reset Timing");
-    scriptProperties.setProperty('timingReset', "false");
-  }
-
   if (properties.isAutoTiming == "true") {            //We are supposed to self adjust the timing schedule.
     if (nextPostTime) {                               //We know when the next run needs to be.
       var minutesTillNextPostTime = (nextPostTime - (new Date())) / 60000;
@@ -332,21 +332,24 @@ function resetTiming() {
   if (ScriptApp.getProjectTriggers().length < 1   //No active timing triggers (Note: adding triggers to this project will break this assumption.)
       || p.timing != 1) {                         //Or current timing is not already the minimum.
 
-    var sanityFactor = 9;                     //Only do anything if no runs in this many minutes
+    var sanityFactor = 9;                         //Do nothing if last run or reset is less than this many minutes ago.
 
     var now = new Date();
     var lastRunFudged = new Date(p.lastRunTime);
-    lastRunFudged.setMinutes(lastRunFudged.getMinutes() + sanityFactor)
+    lastRunFudged.setMinutes(lastRunFudged.getMinutes() + sanityFactor);
 
-    if (now > lastRunFudged) {
+    var lastResetFudged = new Date(p.timingReset);
+    lastResetFudged.setMinutes(lastResetFudged.getMinutes() + sanityFactor);
+
+    if (now > lastRunFudged && now > lastResetFudged) {
       Logger.log("Clearing existing triggers.");
       clearTiming();
 
       Logger.log("Resetting Scheduled Posting to every 1 Minute.");
-      scriptProperties.setProperty('timingReset', "true");
+      scriptProperties.setProperty('timingReset', now.toJSON());
       setTiming();
     } else {
-      Logger.log("Not Resetting Scheduled Posting Due to Recent Run.");
+      Logger.log("Not Resetting Scheduled Posting Due to Recent Activity.");
     }
   } else {
     Logger.log("Not Resetting Scheduled Posting Due to no need.");
