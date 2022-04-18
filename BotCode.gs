@@ -309,6 +309,7 @@ function setTiming(nextPostTime) {
 } 
 
 function clearTiming(trigger) {
+  //Note: If adding some additional whitelisted trigger here that never gets deleted, make sure to also update resetTiming() to account for it.
   var scriptProperties = PropertiesService.getScriptProperties();
   // clear any existing triggers
   var triggers = ScriptApp.getProjectTriggers();
@@ -338,13 +339,12 @@ function resetTiming() {
     lastRunFudged.setMinutes(lastRunFudged.getMinutes() + sanityFactor)
 
     if (now > lastRunFudged) {
-      Logger.log("Resetting Scheduled Posting.");
+      Logger.log("Clearing existing triggers.");
+      clearTiming();
+
+      Logger.log("Resetting Scheduled Posting to every 1 Minute.");
       scriptProperties.setProperty('timingReset', "true");
-      trigger = ScriptApp.newTrigger("setTiming")
-            .timeBased()
-            .everyMinutes(1)
-            .create();
-        Logger.log("Resetting Scheduled Posting to every 1 Minute. (Note: setTiming should erase this trigger.)");
+      setTiming();
     } else {
       Logger.log("Not Resetting Scheduled Posting Due to Recent Run.");
     }
