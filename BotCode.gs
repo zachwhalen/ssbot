@@ -653,11 +653,7 @@ function doTweet(tweet, tweetID, retweetID, replyID) {
         var payload = JSON.stringify({ text: tweet, reply:{in_reply_to_tweet_id: replyID}});
       }
     } else {
-      if (tweet.length == 0) {
-        var payload = JSON.stringify({tweet_id: retweetID });
-      } else {
-        var payload = JSON.stringify({ text: tweet, quote_tweet_id: retweetID });
-      }
+      var payload = JSON.stringify({ text: tweet, quote_tweet_id: retweetID });
     }
   
     var parameters = {
@@ -670,11 +666,7 @@ function doTweet(tweet, tweetID, retweetID, replyID) {
     };
 
     try {
-      if (tweet.length == 0 && typeof retweetID !== 'undefined' ) {
-        var result = UrlFetchApp.fetch('https://api.twitter.com/2/users/:id/retweets', parameters);
-      } else {
-        var result = UrlFetchApp.fetch('https://api.twitter.com/2/tweets', parameters);
-      }
+      var result = UrlFetchApp.fetch('https://api.twitter.com/2/tweets', parameters);
       Logger.log(result.getContentText());
       var response = JSON.parse(result.getContentText());
 
