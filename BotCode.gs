@@ -129,7 +129,7 @@ function logScheduledTweet(rowID, success, response) {
   if (success == "true") {
     var d = new Date();
     var display = Utilities.formatDate(d, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), "yyyy-MM-dd hh:mm a");
-    scheduledSheet.getRange("b" + rowID + ":b" + rowID).setValue(response.id);
+    scheduledSheet.getRange("b" + rowID + ":b" + rowID).setValue(response.data.id);
   } else {
     display = success;
   }
@@ -670,11 +670,11 @@ function doTweet(tweet, tweetID, retweetID, replyID) {
       Logger.log(result.getContentText());
       var response = JSON.parse(result.getContentText());
 
-      if (response.id && properties.constructor === 'every') {
+      if (response.data.id && properties.constructor === 'every') {
         everyRotate();
       }
 
-      if (response.id && properties.constructor === 'scheduled') {
+      if (response.data.id && properties.constructor === 'scheduled') {
         logScheduledTweet(tweetID, "true", response);
       }
 
