@@ -19,8 +19,10 @@
    Kazemi's "Basic Twitter bot Etiquette": 
    http://tinysubversions.com/2013/03/basic-twitter-bot-etiquette/
    
-   This script makes use of Twitter Lib by Bradley Momberger and implements some concepts 
+   This script makes use of Google's OAuth2 library and implements some concepts 
    inspired by or borrowed from Darius Kazemi and Martin Hawksey.
+
+   Please add OAuth2 library via script id of 1B7FSrk5Zi6L1rSxxTDgDEUsPzlukDsi4KGuTMorsTQHhGBzBkMun4iDF 
 
 */
 
@@ -410,26 +412,71 @@ function getTwitterService() {
   var consumer_secret = sheet.getRange('b27').getValue();
   //var project_key = sheet.getRange('b32').getValue();
   var project_key = ScriptApp.getScriptId();
+  var userProps = PropertiesService.getUserProperties();
 
-  // var service = OAuth1.createService('twitter');
-  var service = Twitterlib.createService('twitter');
-  service.setAccessTokenUrl('https://api.twitter.com/oauth/access_token');
+  pkceChallengeVerifier();
 
-  service.setRequestTokenUrl('https://api.twitter.com/oauth/request_token');
+  return OAuth2.createService('Twitter')
+  // Set the endpoint URLs.
+      .setAuthorizationBaseUrl('https://twitter.com/i/oauth2/authorize')
+      .setTokenUrl(
+          'https://api.twitter.com/2/oauth2/token?code_verifier=' + userProps.getProperty('code_verifier'))
 
+  // Set the client ID and secret.
+      .setClientId(consumer_key)
+      .setClientSecret(consumer_secret)
 
-  service.setAuthorizationUrl('https://api.twitter.com/oauth/authorize');
-  service.setConsumerKey(consumer_key);
-  service.setConsumerSecret(consumer_secret);
-  service.setScriptId(project_key);
-  service.setCallbackFunction('authCallback');
-  service.setPropertyStore(PropertiesService.getScriptProperties());
+  // Set the name of the callback function that should be invoked to
+  // complete the OAuth flow.
+      .setCallbackFunction('authCallback')
 
-  return service;
+  // Set the property store where authorized tokens should be persisted.
+      .setPropertyStore(userProps)
 
+  // Set the scopes to request (space-separated for Twitter services).
+      .setScope('tweet.read tweet.write users.read')
 
+  // Add parameters in the authorization url
+      .setParam('response_type', 'code')
+      .setParam('code_challenge_method', 'S256')
+      .setParam('code_challenge', userProps.getProperty('code_challenge'))
+
+      .setTokenHeaders({
+        'Authorization': 'Basic ' + Utilities.base64Encode(consumer_key + ':' + consumer_secret),
+        'Content-Type': 'application/x-www-form-urlencoded'
+      });
 }
 
+/**
+ * Logs the redict URI to register.
+ */
+function logRedirectUri() {
+  Logger.log(OAuth2.getRedirectUri());
+}
+
+/**
+ * Generates code_verifier & code_challenge for PKCE
+ */
+function pkceChallengeVerifier() {
+  var userProps = PropertiesService.getUserProperties();
+  if (!userProps.getProperty('code_verifier')) {
+    var verifier = '';
+    var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+
+    for (var i = 0; i < 128; i++) {
+      verifier += possible.charAt(Math.floor(Math.random() * possible.length));
+    }
+
+    var sha256Hash = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, verifier);
+
+    var challenge = Utilities.base64Encode(sha256Hash)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+    userProps.setProperty('code_verifier', verifier);
+    userProps.setProperty('code_challenge', challenge);
+  }
+}
 function authCallback(request) {
   var service = getTwitterService();
   var isAuthorized = service.handleCallback(request);
@@ -509,20 +556,32 @@ function generateSingleTweet() {
         try {
           doTweet(tweet, tempID[i], retweetIDs[i], replyIDs[i]);
         } catch (err) {
-          doLog("Error Actually Sending Tweet (Row #"+tempID[i]+")", tweet, 'Error');
-          Logger.log("Error Actually Sending Tweet (Row #"+tempID[i]+")");
-          if (properties.isAutoTiming == "true"                              //Auto updating timing is turned on
-              && properties.isScheduledPosting == "true") {                  //Currently in unattended posting mode.
-            //Something went wrong so be sure to try again as soon as possible.
-            setTiming();
+          if (err == "Unauthorized") {
+            doLog("Authorization attempted", "", 'Notice');
+            Logger.log("Authorization attempted");
+          } else {
+            doLog("Error Actually Sending Tweet (Row #"+tempID[i]+")", tweet, 'Error');
+            Logger.log("Error Actually Sending Tweet (Row #"+tempID[i]+")");
+            if (properties.isAutoTiming == "true"                              //Auto updating timing is turned on
+                && properties.isScheduledPosting == "true") {                  //Currently in unattended posting mode.
+              //Something went wrong so be sure to try again as soon as possible.
+              setTiming();
+            }
           }
+          return; //Exit. Do not contiue to try other tweets (or to record sucessful tweet)
         }
       }else{
         try {
           doTweet(tweet);
         } catch (err) {
-          doLog("Error Actually Sending Tweet", tweet, 'Error');
-          Logger.log("Error Actually Sending Tweet ("+tweet+")");
+          if (err == "Unauthorized") {
+            doLog("Authorization attempted", "", 'Notice');
+            Logger.log("Authorization attempted");
+          } else {
+            doLog("Error Actually Sending Tweet", tweet, 'Error');
+            Logger.log("Error Actually Sending Tweet ("+tweet+")");
+          }
+          return; //Exit. Do not contiue to try other tweets (or to record sucessful tweet)
         }
       } 
     } else if (tempID[i] === 'Schedule') {
@@ -659,56 +718,58 @@ function doTweet(tweet, tweetID, retweetID, replyID) {
         var payload = { status: tweet, attachment_url: 'https://twitter.com/username/status/'+retweetID  };
       }
     }
-  } else {
-    var authorizationUrl = service.authorize();
-    msgPopUp('<p>Please visit the following URL and then re-run "Send a Test Tweet": <br/> <a target="_blank" href="' + authorizationUrl + '">' + authorizationUrl + '</a></p>');
-  }
 
-  var parameters = {
-    method: 'post',
-    payload: payload
-  };
+    var parameters = {
+      method: 'post',
+      payload: payload
+    };
 
-  try {
-    if (tweet.length == 0 && typeof retweetID !== 'undefined' ) {
-      parameters = { method: 'post' };
-      var result = service.fetch('https://api.twitter.com/1.1/statuses/retweet/'+retweetID+'.json', parameters);
-    } else {
-      var result = service.fetch('https://api.twitter.com/1.1/statuses/update.json', parameters);
-    }
-    Logger.log(result.getContentText());
-    var response = JSON.parse(result.getContentText());
-
-    if (response.created_at && properties.constructor === 'every') {
-      everyRotate();
-    }
-
-    if (response.created_at && properties.constructor === 'scheduled') {
-      logScheduledTweet(tweetID, "true", response);
-    }
-
-    doLog(response, tweet, 'Success');
-
-  }
-  catch (e) {
-    Logger.log(e.toString());
-    doLog(e, 'n/a', 'Error');
-    if (properties.constructor === 'every' && properties.everyFail === 'skip') {
-      everyRotate();
-    }
-    if (properties.constructor === 'scheduled') {
-      if (properties.everyFail === 'skip') {
-        logScheduledTweet(tweetID, "Error", response);
+    try {
+      if (tweet.length == 0 && typeof retweetID !== 'undefined' ) {
+        parameters = { method: 'post' };
+        var result = service.fetch('https://api.twitter.com/1.1/statuses/retweet/'+retweetID+'.json', parameters);
       } else {
-        //Something went wrong so be sure to try again as soon as possible.
-        setTiming();
+        var result = service.fetch('https://api.twitter.com/1.1/statuses/update.json', parameters);
+      }
+      Logger.log(result.getContentText());
+      var response = JSON.parse(result.getContentText());
+
+      if (response.created_at && properties.constructor === 'every') {
+        everyRotate();
+      }
+
+      if (response.created_at && properties.constructor === 'scheduled') {
+        logScheduledTweet(tweetID, "true", response);
+      }
+
+      doLog(response, tweet, 'Success');
+
+    }
+    catch (e) {
+      Logger.log(e.toString());
+      doLog(e, 'n/a', 'Error');
+      if (properties.constructor === 'every' && properties.everyFail === 'skip') {
+        everyRotate();
+      }
+      if (properties.constructor === 'scheduled') {
+        if (properties.everyFail === 'skip') {
+          logScheduledTweet(tweetID, "Error", response);
+        } else {
+          //Something went wrong so be sure to try again as soon as possible.
+          setTiming();
+        }
+      }
+      if (properties.constructor === 'scheduled' && e.toString().includes("Status is a duplicate")) {
+        logScheduledTweet(tweetID, "Duplicate (Race Condition?)", response);
       }
     }
-    if (properties.constructor === 'scheduled' && e.toString().includes("Status is a duplicate")) {
-      logScheduledTweet(tweetID, "Duplicate (Race Condition?)", response);
-    }
-  }
+  } else {
+    var authorizationUrl = service.getAuthorizationUrl();
 
+    msgPopUp('<p>Please visit the following URL and then re-run "Send a Test Tweet": <br/> <a target="_blank" href="' + authorizationUrl + '">' + authorizationUrl + '</a></p>');
+
+    throw("Unauthorized");
+  }
 }
 
 function msgPopUp(msg) {
