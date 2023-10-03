@@ -495,7 +495,8 @@ function fixedEncodeURIComponent(str) {
 
 function authorizationRevoke() {
   var scriptProperties = PropertiesService.getScriptProperties();
-  scriptProperties.deleteProperty('oauth1.twitter');
+  var service = getTwitterService();
+  service.reset();
   msgPopUp('<p>Your Twitter authorization credentials have been deleted. You\'ll need to re-run "Send a Test Tweet" to reauthorize before you can start posting again.');
 }
 
