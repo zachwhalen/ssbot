@@ -129,7 +129,7 @@ function logScheduledTweet(rowID, success, response) {
   if (success == "true") {
     var d = new Date();
     var display = Utilities.formatDate(d, SpreadsheetApp.getActive().getSpreadsheetTimeZone(), "yyyy-MM-dd hh:mm a");
-    scheduledSheet.getRange("b" + rowID + ":b" + rowID).setValue(response.id_str);
+    scheduledSheet.getRange("b" + rowID + ":b" + rowID).setValue(response.id);
   } else {
     display = success;
   }
@@ -634,44 +634,6 @@ function curfew() {
   return false;
 }
 
-function getMediaIds(tweet) {
-
-  //var tweet = 'Testing http://i.imgur.com/AsghXmB.png http://i.imgur.com/Di9t0XB.jpg';
-
-  var urls = tweet.match(/https?:[^ ]*?(\.png|\.jpg|\.gif)/gi);
-
-  if (urls.length > 0) {
-    var media = [];
-    for (var u = 0; u < urls.length; u++) {
-
-      var service = getTwitterService();
-
-      if (service.hasAccess()) {
-        var snek = getSnek(urls[u]);
-        var mediaPayload = { 'media_data': snek };
-
-        var parameters = {
-          method: 'post',
-          payload: mediaPayload
-        };
-        var result = service.fetch('https://upload.twitter.com/1.1/media/upload.json', parameters);
-        var response = JSON.parse(result.getContentText());
-        media.push(response.media_id_string);
-      } else {
-        var authorizationUrl = service.authorize();
-        //msgPopUp("<iframe src='" + authorizationUrl + "&output=embed' width='600' height='500'></iframe>");
-        msgPopUp('<p>Please visit the following URL and then re-run "Send a Test Tweet": <br/> <a target="_blank" href="' + authorizationUrl + '">' + authorizationUrl + '</a></p>');
-      }
-
-    }
-  } else {
-    return []; // this is probably unnecessary
-  }
-
-  Logger.log(media);
-  return media.join(',');
-}
-
 /*
  * Do the actual sending of a single tweet.
  *
@@ -680,65 +642,47 @@ function getMediaIds(tweet) {
 function doTweet(tweet, tweetID, retweetID, replyID) {
   var properties = PropertiesService.getScriptProperties().getProperties();
 
-  // if Image URL attaching is on, and one or more are found, pass the tweet to a function that will do the upload and 
-  // return an array of media_ids
-
-  if (properties.img == 'yes' &&
-    tweet.match(/\.jpg|\.gif|\.png/i)
-  ) {
-    var media = getMediaIds(tweet);
-    tweet = tweet.replace(/https?:[^ ]*?(\.png|\.jpg|\.gif)/gi, '');
-
-  }
-
   var service = getTwitterService();
 
   if (service.hasAccess()) {
 
-    if (typeof media != 'undefined' && media.length > 0) {
-      if (typeof retweetID === 'undefined' || retweetID.length < 10) {
-        if (typeof replyID === 'undefined' || replyID.length < 10) {
-          var payload = { status: tweet, media_ids: media };
-        } else {
-          var payload = { status: tweet, media_ids: media, in_reply_to_status_id: replyID, auto_populate_reply_metadata: true };
-        }
+    if (typeof retweetID === 'undefined' || retweetID.length < 10) {
+      if (typeof replyID === 'undefined' || replyID.length < 10) {
+        var payload = JSON.stringify({ text: tweet });
       } else {
-        var payload = { status: tweet, media_ids: media, attachment_url: 'https://twitter.com/username/status/'+retweetID };
+        var payload = JSON.stringify({ text: tweet, reply:{in_reply_to_tweet_id: replyID}});
       }
-      
-
     } else {
-      if (typeof retweetID === 'undefined' || retweetID.length < 10) {
-        if (typeof replyID === 'undefined' || replyID.length < 10) {
-          var payload = { status: tweet };
-        } else {
-          var payload = { status: tweet, in_reply_to_status_id: replyID, auto_populate_reply_metadata: true };
-        }
+      if (tweet.length == 0) {
+        var payload = JSON.stringify({tweet_id: retweetID });
       } else {
-        var payload = { status: tweet, attachment_url: 'https://twitter.com/username/status/'+retweetID  };
+        var payload = JSON.stringify({ text: tweet, quote_tweet_id: retweetID });
       }
     }
-
+  
     var parameters = {
       method: 'post',
+      headers: { 
+        "Authorization": 'Bearer ' + service.getAccessToken(),
+        "Content-Type": 'application/json'
+      },
       payload: payload
     };
 
     try {
       if (tweet.length == 0 && typeof retweetID !== 'undefined' ) {
-        parameters = { method: 'post' };
-        var result = service.fetch('https://api.twitter.com/1.1/statuses/retweet/'+retweetID+'.json', parameters);
+        var result = UrlFetchApp.fetch('https://api.twitter.com/2/users/:id/retweets', parameters);
       } else {
-        var result = service.fetch('https://api.twitter.com/1.1/statuses/update.json', parameters);
+        var result = UrlFetchApp.fetch('https://api.twitter.com/2/tweets', parameters);
       }
       Logger.log(result.getContentText());
       var response = JSON.parse(result.getContentText());
 
-      if (response.created_at && properties.constructor === 'every') {
+      if (response.id && properties.constructor === 'every') {
         everyRotate();
       }
 
-      if (response.created_at && properties.constructor === 'scheduled') {
+      if (response.id && properties.constructor === 'scheduled') {
         logScheduledTweet(tweetID, "true", response);
       }
 
@@ -842,14 +786,5 @@ function doLog(msg, tweet, status) {
 
   ls.insertRowBefore(2);
   ls.getRange("A2:D2").setValues(logVals);
-
-}
-
-function getSnek(imgUrl) {
-
-  var response = UrlFetchApp.fetch(imgUrl);
-
-  var result = response.getContent();
-  return Utilities.base64Encode(result);
 
 }
